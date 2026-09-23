@@ -1,13 +1,14 @@
-// Untuk cek status QRIS via browser (harus publik)
-const PAKASIR_SLUG_PUBLIC = 'tokosaya-abc';       // ← GANTI dengan slug Anda
-const PAKASIR_API_KEY_PUBLIC = 'pks_live_xxxxx';  // ← GANTI dengan API Key Anda
-// ============================================================
 // 1. KONFIGURASI SUPABASE
 // Ganti dua baris di bawah dengan milik Anda:
 // Supabase Dashboard → Settings → API
 // ============================================================
 const SUPABASE_URL = 'https://pxvvdowqiesbhngumktn.supabase.co';   // ← GANTI
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4dnZkb3dxaWVzYmhuZ3Vta3RuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxNzAwNTIsImV4cCI6MjEwNTc0NjA1Mn0.fTwhIhy09d8qkIUWY0RHVbJxz0mue1z5AmOR8ncfMMc';          // ← GANTI
+// ============================================================
+// 1b. KONFIGURASI PAKASIR (dari dashboard Pakasir)
+// ============================================================
+const PAKASIR_SLUG = 'kasir-toko-saya';              // ← GANTI dengan Slug proyek Anda
+const PAKASIR_API_KEY = 'KiAMlXHZ1y7zJgPE95dB2SpvIlrXdbtU'; // ← GANTI dengan API Key proyek Anda
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
