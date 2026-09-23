@@ -235,17 +235,81 @@ async function payCash() {
 
 async function payQRIS() {
   if (cart.length === 0) return alert('Keranjang kosong');
+
+  // 1. Hitung total
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0)
               - (Number(document.getElementById('cartDiscount').value) || 0);
-  // Placeholder Pakasir: redirect ke halaman pembayaran Pakasir
+
+  // 2. Buat order ID unik
   const orderId = 'TRX' + Date.now();
-  const slug = 'GANTI-SLUG-PAKASIR-ANDA';
-  const pakasirUrl = `https://app.pakasir.com/pay/${slug}/${total}?order_id=${orderId}&qris_only=1`;
-  const win = window.open(pakasirUrl, '_blank');
-  if (win) {
-    alert('Selesaikan pembayaran di tab baru. Setelah selesai, klik OK di sini.');
-    await saveTransaction('qris', total);
+
+  // 3. GANTI DENGAN SLUG PAKASIR ANDA
+  const SLUG = 'tokosaya-abc';   // ← GANTI!
+
+  // 4. Bangun URL
+  const pakasirUrl = `https://app.pakasir.com/pay/${SLUG}/${total}?order_id=${orderId}&qris_only=1`;
+
+  // 5. Simpan transaksi dulu dengan status "pending"
+  const { data: trx } = await db.from('transactions').insert({
+    transaction_number: orderId,
+    cashier_id: currentUser.id,
+    total_amount: total,
+    discount: Number(document.getElementById('cartDiscount').value) || 0,
+    payment_method: 'qris',
+    payment_status: 'pending',
+    qris_order_id: orderId
+  }).select().single();
+
+  // 6. Simpan detail item
+  if (trx) {
+    const items = cart.map(i => ({
+      transaction_id: trx.id,
+      product_id: i.id,
+      quantity: i.qty,
+      unit_price: i.price,
+      subtotal: i.price * i.qty
+    }));
+    await db.from('transaction_items').insert(items);
   }
+
+  // 7. Buka halaman pembayaran Pakasir di tab baru
+  window.open(pakasirUrl, '_blank');
+
+  // 8. Info ke kasir
+  alert(
+    `📱 Halaman QRIS sudah dibuka di tab baru.\n\n` +
+    `Nomor Order: ${orderId}\n` +
+    `Total: Rp ${formatNumber(total)}\n\n` +
+    `Minta pelanggan scan QR di tab tersebut.\n` +
+    `Setelah pelanggan selesai bayar, klik OK di sini untuk menyelesaikan transaksi.`
+  );
+
+  // 9. Update status jadi paid + kurangi stok
+  await completePayment(trx.id, orderId);
+}
+
+async function completePayment(trxId, orderId) {
+  // Update transaksi
+  await db.from('transactions')
+    .update({ payment_status: 'paid' })
+    .eq('id', trxId);
+
+  // Kurangi stok
+  for (const i of cart) {
+    const p = products.find(x => x.id === i.id);
+    if (p) {
+      await db.from('products').update({ stock: p.stock - i.qty }).eq('id', i.id);
+    }
+  }
+
+  // Reset keranjang
+  cart = [];
+  document.getElementById('cartDiscount').value = 0;
+  await loadProducts();
+  renderProducts();
+  renderCart();
+
+  alert('✅ Transaksi selesai! Nomor: ' + orderId);
 }
 
 async function saveTransaction(method, total) {
