@@ -289,7 +289,7 @@ async function payQRIS() {
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0)
               - (Number(document.getElementById('cartDiscount').value) || 0);
   const orderId = 'TRX' + Date.now();
-  const slug = 'GANTI-SLUG-PAKASIR-ANDA';
+  const slug = 'kasir-toko-saya';
   const pakasirUrl = `https://app.pakasir.com/pay/${slug}/${total}?order_id=${orderId}&qris_only=1`;
   window.open(pakasirUrl, '_blank');
   alert(`📱 Selesaikan pembayaran di tab baru.\n\nOrder: ${orderId}\nTotal: Rp ${formatNumber(total)}\n\nKlik OK jika sudah dibayar.`);
