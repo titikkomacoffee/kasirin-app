@@ -3,8 +3,8 @@
 // Ganti dua baris di bawah dengan milik Anda:
 // Supabase Dashboard → Settings → API
 // ============================================================
-const SUPABASE_URL = 'https://XXXXX.supabase.co';   // ← GANTI
-const SUPABASE_ANON_KEY = 'eyJhbGciOi...';          // ← GANTI
+const SUPABASE_URL = 'https://pxvvdowqiesbhngumktn.supabase.co';   // ← GANTI
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4dnZkb3dxaWVzYmhuZ3Vta3RuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxNzAwNTIsImV4cCI6MjEwNTc0NjA1Mn0.fTwhIhy09d8qkIUWY0RHVbJxz0mue1z5AmOR8ncfMMc';          // ← GANTI
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
