@@ -248,7 +248,7 @@ async function payQRIS() {
   const orderId = 'TRX' + Date.now();
 
   // 3. GANTI DENGAN SLUG PAKASIR ANDA
-  const SLUG = 'tokosaya-abc';   // ← GANTI!
+  const SLUG = 'kasir-toko-saya';   // ← GANTI!
 
   // 4. Bangun URL
   const pakasirUrl = `https://app.pakasir.com/pay/${SLUG}/${total}?order_id=${orderId}&qris_only=1`;
