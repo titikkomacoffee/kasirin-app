@@ -1,3 +1,6 @@
+// Untuk cek status QRIS via browser (harus publik)
+const PAKASIR_SLUG_PUBLIC = 'tokosaya-abc';       // ← GANTI dengan slug Anda
+const PAKASIR_API_KEY_PUBLIC = 'pks_live_xxxxx';  // ← GANTI dengan API Key Anda
 // ============================================================
 // 1. KONFIGURASI SUPABASE
 // Ganti dua baris di bawah dengan milik Anda:
