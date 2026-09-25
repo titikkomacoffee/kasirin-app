@@ -3,12 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Teman Coffee POS</title>
+  <title>Teman Coffee POS - Multi Device & Enterprise Edition</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- FontAwesome Icon -->
+  <!-- SheetJS untuk Export / Import Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -22,57 +24,96 @@
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans min-h-screen pb-24 select-none">
 
-  <!-- NOTIFIKASI TOAST -->
+  <!-- TOAST NOTIFICATION -->
   <div id="toastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 z-[100] space-y-2 w-11/12 max-w-sm pointer-events-none"></div>
 
-  <!-- AUTH SCREEN (LOGIN & REGISTER) -->
-  <div id="authScreen" class="fixed inset-0 bg-white z-[90] flex items-center justify-center p-6">
-    <div class="w-full max-w-md space-y-6">
+  <!-- AUTHENTICATION SCREEN -->
+  <div id="authScreen" class="fixed inset-0 bg-white z-[90] flex items-center justify-center p-6 overflow-y-auto">
+    <div class="w-full max-w-md space-y-5 my-auto">
       <div class="text-center space-y-2">
-        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold shadow-sm">
-          <i class="fa-solid fa-store"></i>
+        <div id="loginAppLogoContainer" class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto text-3xl font-bold shadow-md border border-emerald-200 overflow-hidden">
+          <img id="loginAppLogoImg" src="" alt="App Logo" class="w-full h-full object-cover hidden">
+          <i id="loginAppLogoIcon" class="fa-solid fa-store"></i>
         </div>
-        <h2 class="text-xl font-extrabold text-gray-800 tracking-wide">TEMAN COFFEE POS</h2>
-        <p class="text-xs text-gray-400">Masuk dengan akun Admin, Manajer, atau Kasir</p>
+        <h2 class="text-xl font-black text-gray-800 tracking-wide uppercase" id="loginStoreTitle">TEMAN COFFEE POS</h2>
+        <p class="text-xs text-gray-400">Sistem Kasir Multi-Device (Admin, Manajer, & Kasir)</p>
       </div>
 
-      <!-- FORM AUTHENTICATION -->
-      <div class="bg-gray-50 border border-gray-200 p-5 rounded-2xl space-y-4 shadow-sm">
-        <!-- TOGGLE LOGIN / REGISTER -->
-        <div class="flex bg-gray-200 p-1 rounded-xl text-xs font-semibold">
-          <button id="tabBtnLogin" type="button" onclick="setAuthMode('login')" class="flex-1 py-2 rounded-lg bg-white shadow-sm text-gray-800 transition">Masuk</button>
-          <button id="tabBtnRegister" type="button" onclick="setAuthMode('register')" class="flex-1 py-2 rounded-lg text-gray-500 transition">Daftar Akun</button>
+      <div class="bg-gray-50 border border-gray-200 p-5 rounded-3xl space-y-4 shadow-sm">
+        <div class="flex bg-gray-200 p-1 rounded-2xl text-xs font-bold">
+          <button id="tabBtnLogin" type="button" onclick="setAuthMode('login')" class="flex-1 py-2 rounded-xl bg-white shadow-sm text-gray-800 transition">Masuk</button>
+          <button id="tabBtnRegister" type="button" onclick="setAuthMode('register')" class="flex-1 py-2 rounded-xl text-gray-500 transition">Daftar Perangkat</button>
         </div>
 
-        <!-- FORM INPUT EKSTRA REGISTRASI -->
         <div id="regExtraFields" class="hidden space-y-3">
           <div>
-            <label class="text-[11px] font-semibold text-gray-500">Nama Lengkap</label>
-            <input type="text" id="authName" placeholder="Contoh: Budi Kasir" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-500">
+            <label class="text-[11px] font-bold text-gray-500">Nama Perangkat / Staff</label>
+            <input type="text" id="authName" placeholder="Contoh: Kasir Perangkat 1" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-500">
           </div>
           <div>
-            <label class="text-[11px] font-semibold text-gray-500">Peran / Role</label>
-            <select id="authRole" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-500">
-              <option value="kasir">Kasir</option>
-              <option value="manager">Manajer</option>
-              <option value="admin">Admin / Pemilik</option>
+            <label class="text-[11px] font-bold text-gray-500">Akses Peran (Perangkat)</label>
+            <select id="authRole" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 font-semibold">
+              <option value="kasir">Kasir (Transaksi & Shift Kasir)</option>
+              <option value="manager">Manajer (Kasir & Laporan Finansial)</option>
+              <option value="admin">Admin (Akses Penuh Seluruh Sistem)</option>
             </select>
           </div>
         </div>
 
         <div>
-          <label class="text-[11px] font-semibold text-gray-500">Email</label>
-          <input type="email" id="authEmail" value="admin@temancoffee.com" placeholder="kasir@temancoffee.com" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-500">
+          <label class="text-[11px] font-bold text-gray-500">Email Akun Perangkat</label>
+          <input type="email" id="authEmail" value="admin@temancoffee.com" placeholder="email@perangkat.com" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-500">
         </div>
         <div>
-          <label class="text-[11px] font-semibold text-gray-500">Kata Sandi</label>
+          <label class="text-[11px] font-bold text-gray-500">Kata Sandi</label>
           <input type="password" id="authPassword" value="123456" placeholder="••••••••" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-500">
         </div>
 
-        <button type="button" onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-2">
-          <span>Masuk ke Aplikasi</span>
+        <button type="button" onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-2xl text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-2">
+          <span>Masuk ke Perangkat</span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL ABSENSI KAMERA & SHIFT KASIR (WAJIB) -->
+  <div id="attendanceModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[95] hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-4 shadow-2xl">
+      <div class="text-center space-y-1">
+        <h3 class="font-extrabold text-base text-gray-800" id="attendanceTitle">Absensi Wajib Pegawai</h3>
+        <p class="text-[11px] text-gray-400">Silakan ambil foto selfie langsung melalui kamera perangkat.</p>
+      </div>
+
+      <!-- Kamera Preview -->
+      <div class="relative bg-black rounded-2xl h-56 overflow-hidden flex items-center justify-center border">
+        <video id="webcamVideo" autoplay playsinline class="w-full h-full object-cover"></video>
+        <canvas id="webcamCanvas" class="hidden"></canvas>
+        <img id="capturedImage" class="w-full h-full object-cover hidden">
+        <div id="cameraPlaceholder" class="text-white text-xs flex flex-col items-center gap-2">
+          <i class="fa-solid fa-camera text-2xl"></i> Memuat Kamera...
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button id="btnCapturePhoto" onclick="takePhoto()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow">
+          <i class="fa-solid fa-camera"></i> Ambil Foto Absen
+        </button>
+        <button id="btnRetakePhoto" onclick="resetCamera()" class="hidden bg-gray-200 text-gray-700 font-bold px-4 py-2.5 rounded-xl text-xs">
+          Ulangi
+        </button>
+      </div>
+
+      <!-- Input Kas Awal (Wajib untuk Kasir) -->
+      <div id="shiftKasAwalContainer" class="hidden space-y-2 border-t pt-3">
+        <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1">
+          <i class="fa-solid fa-vault text-emerald-500"></i> Masukkan Kas Awal / Modal Tunai (Rp)
+        </label>
+        <input type="number" id="inputKasAwal" placeholder="Contoh: 200000" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 focus:outline-none focus:border-emerald-500">
+      </div>
+
+      <button id="btnSubmitAttendance" onclick="submitAttendanceAndShift()" disabled class="w-full bg-emerald-500 disabled:bg-gray-300 text-white font-bold py-3 rounded-xl text-xs shadow transition">
+        Konfirmasi & Buka Perangkat POS
+      </button>
     </div>
   </div>
 
@@ -80,24 +121,24 @@
   <div id="appScreen" class="hidden">
     <!-- TOPBAR -->
     <header class="bg-white px-4 py-3 border-b flex justify-between items-center sticky top-0 z-40 shadow-sm">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-xs">
-          <i class="fa-solid fa-user text-xs"></i>
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-2xl bg-emerald-100 border flex items-center justify-center text-emerald-600 font-bold text-xs overflow-hidden" id="mainHeaderLogo">
+          <i class="fa-solid fa-store"></i>
         </div>
         <div>
-          <h1 class="text-xs font-bold text-gray-700 uppercase" id="currentUserDisplay">Pengguna POS</h1>
-          <span class="text-[10px] text-emerald-600 flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span id="currentUserRole" class="uppercase font-semibold">Admin</span>
+          <h1 class="text-xs font-bold text-gray-800 uppercase" id="currentUserDisplay">Pengguna POS</h1>
+          <span class="text-[10px] text-emerald-600 flex items-center gap-1 font-bold">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="currentUserRole" class="uppercase">ADMIN</span>
           </span>
         </div>
       </div>
-      <button onclick="handleLogout()" class="text-rose-500 text-xs font-semibold hover:bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-100 transition">
+      <button onclick="handleLogout()" class="text-rose-500 text-xs font-bold hover:bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-100 transition flex items-center gap-1">
         <i class="fa-solid fa-right-from-bracket"></i> Keluar
       </button>
     </header>
 
-    <!-- CONTENT BODY -->
+    <!-- CONTENT CONTAINER -->
     <main class="max-w-md mx-auto p-4 space-y-4">
 
       <!-- TAB 1: BERANDA -->
@@ -109,19 +150,32 @@
             </div>
             <div class="text-xl font-extrabold text-gray-800" id="dashTotalCount">0</div>
           </div>
-
           <div class="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm">
             <div class="flex items-center gap-1.5 text-xs text-gray-500 font-medium mb-1">
-              <i class="fa-solid fa-wallet text-emerald-500"></i> Penjualan Hari Ini
+              <i class="fa-solid fa-wallet text-emerald-500"></i> Laba Bersih Hari Ini
             </div>
-            <div class="text-lg font-extrabold text-gray-800" id="dashSalesToday">Rp 0</div>
+            <div class="text-lg font-extrabold text-emerald-600" id="dashSalesToday">Rp 0</div>
           </div>
         </div>
 
-        <!-- Menu Operasional -->
+        <!-- Shift Info Card -->
+        <div id="dashShiftCard" class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-4 rounded-2xl shadow-md space-y-2 hidden">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold uppercase tracking-wider text-[10px] bg-white/20 px-2 py-0.5 rounded-lg">Shift Aktif Kasir</span>
+            <span id="dashShiftTime" class="text-[10px] opacity-80">--:--</span>
+          </div>
+          <div class="flex justify-between items-end">
+            <div>
+              <p class="text-[10px] opacity-80">Modal Kas Awal</p>
+              <p class="text-base font-black" id="dashKasAwal">Rp 0</p>
+            </div>
+            <button onclick="closeShiftKasir()" class="bg-white text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-xl shadow hover:bg-emerald-50">Tutup Shift</button>
+          </div>
+        </div>
+
         <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
           <div class="text-xs font-bold text-gray-700 mb-3 flex items-center gap-1">
-            <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> Menu Operasional
+            <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> Pintasan Operasional
           </div>
           <div class="grid grid-cols-4 gap-2 text-center">
             <button onclick="switchTab('produk')" class="flex flex-col items-center gap-1">
@@ -136,37 +190,47 @@
               </div>
               <span class="text-[10px] text-gray-600 font-medium">Laporan</span>
             </button>
-            <button onclick="showToast('Fitur Pengeluaran Siap', 'info')" class="flex flex-col items-center gap-1">
-              <div class="w-11 h-11 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-500">
-                <i class="fa-solid fa-wallet text-sm"></i>
-              </div>
-              <span class="text-[10px] text-gray-600 font-medium">Pengeluaran</span>
-            </button>
             <button onclick="switchTab('kasir')" class="flex flex-col items-center gap-1">
               <div class="w-11 h-11 rounded-full bg-pink-50 border border-pink-200 flex items-center justify-center text-pink-500">
                 <i class="fa-solid fa-cart-plus text-sm"></i>
               </div>
               <span class="text-[10px] text-gray-600 font-medium">Kasir POS</span>
             </button>
+            <button onclick="switchTab('lainnya')" class="flex flex-col items-center gap-1">
+              <div class="w-11 h-11 rounded-full bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-500">
+                <i class="fa-solid fa-sliders text-sm"></i>
+              </div>
+              <span class="text-[10px] text-gray-600 font-medium">Pengaturan</span>
+            </button>
           </div>
         </div>
       </section>
 
-      <!-- TAB 2: PRODUK -->
+      <!-- TAB 2: PRODUK (Dengan Import / Export Excel) -->
       <section id="tab-produk" class="tab-content hidden space-y-4">
         <div class="flex justify-between items-center">
           <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
             <i class="fa-solid fa-box text-emerald-500"></i> Kelola Produk
           </h2>
+          <div class="flex gap-1">
+            <button onclick="exportProductsExcel()" class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1">
+              <i class="fa-solid fa-file-excel"></i> Ekspor
+            </button>
+            <label class="bg-indigo-50 text-indigo-600 border border-indigo-200 px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer">
+              <i class="fa-solid fa-file-import"></i> Impor
+              <input type="file" id="importExcelInput" accept=".xlsx, .xls, .csv" onchange="importProductsExcel(event)" class="hidden">
+            </label>
+          </div>
         </div>
+
         <div id="productManagerList" class="space-y-2"></div>
       </section>
 
-      <!-- TAB 3: KASIR TRANSAKSI -->
+      <!-- TAB 3: KASIR TRANSAKSI POS -->
       <section id="tab-kasir" class="tab-content hidden space-y-3">
         <div class="flex justify-between items-center">
           <h2 class="text-base font-bold text-gray-800 flex items-center gap-1.5">
-            <i class="fa-solid fa-cart-shopping text-emerald-500"></i> Katalog Kasir
+            <i class="fa-solid fa-cart-shopping text-emerald-500"></i> Katalog POS Kasir
           </h2>
           <button onclick="showCartModal()" class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1 rounded-xl text-xs font-semibold flex items-center gap-1">
             <i class="fa-solid fa-receipt"></i> Keranjang 
@@ -176,23 +240,139 @@
         <div id="posGrid" class="grid grid-cols-2 gap-3"></div>
       </section>
 
-      <!-- TAB 4: LAPORAN -->
+      <!-- TAB 4: LAPORAN (Termasuk Laba/Rugi Realtime & Pemotongan Pengeluaran) -->
       <section id="tab-laporan" class="tab-content hidden space-y-4">
-        <h2 class="text-base font-bold text-gray-800">Ringkasan Laporan</h2>
-        <div class="bg-white p-4 rounded-2xl border border-gray-100 space-y-2 text-xs">
-          <div class="flex justify-between text-gray-600">
-            <span>Omset Penjualan</span>
-            <span class="font-bold text-emerald-600">Rp 0</span>
+        <div class="flex justify-between items-center">
+          <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
+            <i class="fa-solid fa-chart-line text-emerald-500"></i> Laporan Keuangan
+          </h2>
+          <button onclick="showToast('Mencetak Laporan PDF...')" class="border border-gray-300 bg-white text-gray-700 px-3 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-print"></i> Cetak Laporan
+          </button>
+        </div>
+
+        <!-- Laba Rugi Harian Realtime -->
+        <div class="bg-white p-4 rounded-2xl border border-gray-100 space-y-2 shadow-sm text-xs">
+          <p class="font-bold text-gray-800 flex items-center gap-2 mb-2">
+            <i class="fa-solid fa-calculator text-emerald-500"></i> Laba Rugi Realtime Hari Ini
+          </p>
+          <div class="flex justify-between text-gray-600 py-1">
+            <span>Pendapatan Penjualan Kotor</span>
+            <span class="font-bold text-gray-800" id="repGrossSales">Rp 0</span>
+          </div>
+          <div class="flex justify-between text-rose-500 py-1 border-t border-dashed">
+            <span>Total Pengeluaran Operasional (-)</span>
+            <span class="font-bold" id="repTotalExpenses">-Rp 0</span>
+          </div>
+          <div class="flex justify-between text-emerald-600 font-black text-sm py-2 border-t">
+            <span>Laba Bersih Akhir</span>
+            <span id="repNetProfit">Rp 0</span>
           </div>
         </div>
       </section>
 
-      <!-- TAB 5: LAINNYA -->
+      <!-- TAB 5: LAINNYA (DENGAN SETTING LENGKAP) -->
       <section id="tab-lainnya" class="tab-content hidden space-y-4">
-        <div class="bg-white rounded-2xl border border-gray-100 p-4 text-xs">
-          <p class="font-semibold text-gray-700">Teman Coffee POS v1.0</p>
-          <p class="text-gray-400 mt-1">Sistem kasir terhubung ke database Supabase.</p>
+        
+        <!-- Profile Toko & Kustomisasi Branding -->
+        <div class="bg-white p-4 rounded-2xl border border-gray-100 space-y-3 shadow-sm">
+          <div class="flex justify-between items-center">
+            <h3 class="font-bold text-xs text-gray-800 uppercase flex items-center gap-2">
+              <i class="fa-solid fa-shop text-emerald-500"></i> Identitas Toko & Logo
+            </h3>
+            <button onclick="saveStoreSettings()" class="bg-emerald-500 text-white px-3 py-1 rounded-xl text-xs font-bold">Simpan</button>
+          </div>
+          <div class="space-y-2">
+            <div>
+              <label class="text-[10px] font-bold text-gray-400">Nama Toko / Usaha</label>
+              <input type="text" id="settingStoreName" value="TEMAN COFFEE KUPANG" class="w-full bg-gray-50 border rounded-xl px-2.5 py-1.5 text-xs font-bold text-gray-800">
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-gray-400">Alamat Lengkap</label>
+              <input type="text" id="settingStoreAddress" value="Jl. Puri Lontar, Kupang" class="w-full bg-gray-50 border rounded-xl px-2.5 py-1.5 text-xs font-semibold text-gray-800">
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-gray-400">Nomor Telepon / WhatsApp</label>
+              <input type="text" id="settingStorePhone" value="08123456789" class="w-full bg-gray-50 border rounded-xl px-2.5 py-1.5 text-xs font-semibold text-gray-800">
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-gray-400">Logo Usaha (Ganti Logo)</label>
+              <input type="file" id="settingLogoFile" accept="image/*" onchange="uploadStoreLogo(event)" class="w-full text-xs text-gray-500">
+            </div>
+          </div>
         </div>
+
+        <!-- FITUR STOK (IN, OUT, RUSAK) -->
+        <div class="space-y-2">
+          <p class="text-[11px] font-bold text-gray-400 tracking-wider uppercase">MANAJEMEN STOK</p>
+          <div class="bg-white rounded-2xl border border-gray-100 divide-y overflow-hidden shadow-sm">
+            <div onclick="openStockModal('in')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-50">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs"><i class="fa-solid fa-arrow-down"></i></div>
+                <div>
+                  <p class="text-xs font-bold text-gray-800">Stok Masuk (Stock In)</p>
+                  <p class="text-[10px] text-gray-400">Tambah persediaan barang dari supplier</p>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-right text-xs text-gray-300"></i>
+            </div>
+            <div onclick="openStockModal('out')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-50">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xs"><i class="fa-solid fa-arrow-up"></i></div>
+                <div>
+                  <p class="text-xs font-bold text-gray-800">Stok Keluar (Stock Out)</p>
+                  <p class="text-[10px] text-gray-400">Pengurangan stok non-transaksi</p>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-right text-xs text-gray-300"></i>
+            </div>
+            <div onclick="openStockModal('damaged')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-50">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xs"><i class="fa-solid fa-dumpster-fire"></i></div>
+                <div>
+                  <p class="text-xs font-bold text-gray-800">Stok Rusak / Kadaluarsa (Waste)</p>
+                  <p class="text-[10px] text-gray-400">Catat produk rusak yang mengurangi stok</p>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-right text-xs text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- FITUR PENGELUARAN (PENGURANG LABA) -->
+        <div class="space-y-2">
+          <p class="text-[11px] font-bold text-gray-400 tracking-wider uppercase">PENGELUARAN TOKO</p>
+          <div class="bg-white rounded-2xl border border-gray-100 p-3.5 space-y-3 shadow-sm">
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="text-xs font-bold text-gray-800">Input Pengeluaran Operasional</p>
+                <p class="text-[10px] text-gray-400">Pengeluaran langsung memotong laba bersih harian</p>
+              </div>
+              <button onclick="openExpenseModal()" class="bg-rose-50 border border-rose-200 text-rose-600 px-3 py-1 rounded-xl text-xs font-bold">
+                + Input
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- INTEGRASI PAKASIR QRIS -->
+        <div class="space-y-2">
+          <p class="text-[11px] font-bold text-gray-400 tracking-wider uppercase">INTEGRASI PEMBAYARAN</p>
+          <div class="bg-white rounded-2xl border border-gray-100 p-3.5 space-y-3 shadow-sm">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xs"><i class="fa-solid fa-qrcode"></i></div>
+              <div>
+                <p class="text-xs font-bold text-gray-800">QRIS Dinamis Pakasir</p>
+                <p class="text-[10px] text-gray-400">Integrasi otomatis via API Pakasir</p>
+              </div>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-gray-400">Pakasir API Key / Project Slug</label>
+              <input type="text" id="settingPakasirKey" placeholder="Masukkan API Key Pakasir" class="w-full bg-gray-50 border rounded-xl px-2.5 py-1.5 text-xs font-semibold text-gray-800 mt-1">
+            </div>
+          </div>
+        </div>
+
       </section>
 
     </main>
@@ -235,19 +415,63 @@
       <div id="cartModalList" class="space-y-2 text-xs"></div>
       <div class="border-t pt-2 space-y-2 text-xs">
         <div class="flex justify-between font-bold text-sm">
-          <span>Total:</span>
+          <span>Total Bayar:</span>
           <span id="cartModalTotal" class="text-emerald-600">Rp 0</span>
         </div>
-        <button onclick="processCheckout()" class="w-full bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs hover:bg-emerald-600 shadow-md">
+        <button onclick="processCheckout()" class="w-full bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs hover:bg-emerald-600 shadow-md">
           Selesaikan Pembayaran
         </button>
       </div>
     </div>
   </div>
 
-  <!-- JAVASCRIPT KONEKSI SUPABASE -->
+  <!-- MODAL KELOLA STOK -->
+  <div id="stockModal" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-3">
+      <h3 id="stockModalTitle" class="font-bold text-sm text-gray-800">Manajemen Stok</h3>
+      <div>
+        <label class="text-[10px] font-bold text-gray-400">Pilih Produk</label>
+        <select id="stockProductSelect" class="w-full bg-gray-50 border rounded-xl px-2 py-1.5 text-xs font-semibold"></select>
+      </div>
+      <div>
+        <label class="text-[10px] font-bold text-gray-400">Jumlah Unit</label>
+        <input type="number" id="stockQtyInput" value="1" min="1" class="w-full bg-gray-50 border rounded-xl px-2 py-1.5 text-xs font-bold">
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeStockModal()" class="flex-1 bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-xs">Batal</button>
+        <button onclick="submitStockChange()" class="flex-1 bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs">Simpan Stok</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PENGELUARAN -->
+  <div id="expenseModal" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-3">
+      <h3 class="font-bold text-sm text-gray-800">Input Pengeluaran Baru</h3>
+      <div>
+        <label class="text-[10px] font-bold text-gray-400">Kategori Pengeluaran</label>
+        <select id="expenseCategory" class="w-full bg-gray-50 border rounded-xl px-2 py-1.5 text-xs font-semibold">
+          <option value="Operasional">Operasional Toko</option>
+          <option value="Gaji Staff">Gaji Staff / Kasir</option>
+          <option value="Listrik & Air">Listrik & Air</option>
+          <option value="Bahan Baku">Bahan Baku / Retur</option>
+          <option value="Lain-lain">Lain-lain</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-[10px] font-bold text-gray-400">Nominal Pengeluaran (Rp)</label>
+        <input type="number" id="expenseAmount" placeholder="Contoh: 50000" class="w-full bg-gray-50 border rounded-xl px-2 py-1.5 text-xs font-bold">
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeExpenseModal()" class="flex-1 bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-xs">Batal</button>
+        <button onclick="submitExpense()" class="flex-1 bg-rose-500 text-white font-bold py-2 rounded-xl text-xs">Potong Laba</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
   <script>
-    // KREDENSIAL SUPABASE
+    // SUPABASE SETUP
     const SUPABASE_URL = 'https://ankprmkhsqkgugzndlcx.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFua3BybWtoc3FrZ3Vnem5kbGN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNzI2NzgsImV4cCI6MjEwNTg0ODY3OH0.D48Jxrv2f51Ggl9yT5Tayme5eDAC_Eo1jpM_pmGfp-E';
     
@@ -255,19 +479,28 @@
     try {
       supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } catch(e) {
-      console.error('Inisialisasi Supabase gagal:', e);
+      console.error('Supabase Gagal Inisialisasi:', e);
     }
 
+    // STATE UTAMA
     let authMode = 'login';
-    let products = [
-      { id: '1', name: 'Kopi Susu Gula Aren', price: 18000, stock: 15 },
-      { id: '2', name: 'Americano Ice', price: 15000, stock: 20 },
-      { id: '3', name: 'Matcha Latte', price: 22000, stock: 8 },
-      { id: '4', name: 'Croissant Cokelat', price: 12000, stock: 10 }
-    ];
-    let cart = [];
+    let currentUser = { name: '', role: 'admin' };
+    let currentActiveStockType = 'in';
+    let isAttendanceDone = false;
+    let cameraStream = null;
+    let capturedPhotoData = null;
 
-    // NOTIFIKASI TOAST
+    let products = [
+      { id: '1', name: 'Kopi Susu Gula Aren', price: 18000, stock: 25 },
+      { id: '2', name: 'Americano Ice', price: 15000, stock: 30 },
+      { id: '3', name: 'Matcha Latte', price: 22000, stock: 12 },
+      { id: '4', name: 'Croissant Cokelat', price: 12000, stock: 15 }
+    ];
+
+    let cart = [];
+    let grossSales = 0;
+    let totalExpenses = 0;
+
     function showToast(message, type = 'success') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
@@ -281,111 +514,155 @@
       setTimeout(() => toast.remove(), 3000);
     }
 
-    // SWITCH MODAL LOGIN & REGISTRASI
     function setAuthMode(mode) {
       authMode = mode;
       const btnLogin = document.getElementById('tabBtnLogin');
       const btnRegister = document.getElementById('tabBtnRegister');
       const extraFields = document.getElementById('regExtraFields');
-      const submitBtnText = document.querySelector('#authSubmitBtn span');
 
       if (mode === 'login') {
-        btnLogin.className = "flex-1 py-2 rounded-lg bg-white shadow-sm text-gray-800 font-bold transition";
-        btnRegister.className = "flex-1 py-2 rounded-lg text-gray-500 transition";
+        btnLogin.className = "flex-1 py-2 rounded-xl bg-white shadow-sm text-gray-800 font-bold transition";
+        btnRegister.className = "flex-1 py-2 rounded-xl text-gray-500 transition";
         extraFields.classList.add('hidden');
-        if (submitBtnText) submitBtnText.innerText = "Masuk ke Aplikasi";
       } else {
-        btnRegister.className = "flex-1 py-2 rounded-lg bg-white shadow-sm text-gray-800 font-bold transition";
+        btnRegister.className = "flex-1 py-2 rounded-xl bg-white shadow-sm text-gray-800 font-bold transition";
         btnLogin.className = "flex-1 py-2 rounded-lg text-gray-500 transition";
         extraFields.classList.remove('hidden');
-        if (submitBtnText) submitBtnText.innerText = "Daftar Akun Baru";
       }
     }
 
-    // HANDLER AKSI TOMBOL MASUK & DAFTAR SUPABASE
     async function handleAuthSubmit() {
       const email = document.getElementById('authEmail').value;
       const password = document.getElementById('authPassword').value;
-      const name = document.getElementById('authName').value || 'Pengguna POS';
+      const name = document.getElementById('authName').value || 'Perangkat POS';
       const role = document.getElementById('authRole').value || 'kasir';
 
-      if (!email || !password) {
-        return showToast('Harap isi Email & Kata Sandi!', 'error');
-      }
+      if (!email || !password) return showToast('Isi Email & Password!', 'error');
 
       if (supabaseClient) {
         if (authMode === 'login') {
           const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-          if (error) {
-            showToast('Gagal Masuk: ' + error.message, 'error');
-            return;
-          }
-          showToast('Berhasil Masuk!');
-          openMainApp(data.user.email.split('@')[0], 'Admin');
+          if (error) return showToast('Gagal Login: ' + error.message, 'error');
+          const userRole = data.user.user_metadata?.role || 'admin';
+          const userName = data.user.user_metadata?.full_name || email.split('@')[0];
+          prepareUserSession(userName, userRole);
         } else {
-          const { data, error } = await supabaseClient.auth.signUp({
-            email,
-            password,
-            options: { data: { full_name: name, role: role } }
+          const { error } = await supabaseClient.auth.signUp({
+            email, password, options: { data: { full_name: name, role: role } }
           });
-          if (error) {
-            return showToast('Gagal Registrasi: ' + error.message, 'error');
-          }
-          showToast('Akun Berhasil Didaftarkan! Silakan Masuk.', 'success');
+          if (error) return showToast('Gagal Daftar: ' + error.message, 'error');
+          showToast('Perangkat Berhasil Didaftarkan!');
           setAuthMode('login');
         }
       } else {
-        // Fallback jika koneksi gagal
-        if (authMode === 'login') {
-          showToast('Masuk Mode Offline');
-          openMainApp(email.split('@')[0], 'Admin');
-        } else {
-          showToast('Pendaftaran Berhasil (Offline)', 'success');
-          setAuthMode('login');
-        }
+        prepareUserSession(email.split('@')[0], role);
       }
     }
 
-    function openMainApp(userName, userRole) {
+    function prepareUserSession(userName, userRole) {
+      currentUser = { name: userName, role: userRole };
+      
+      if (userRole === 'kasir' || userRole === 'manager') {
+        openAttendanceModal();
+      } else {
+        openMainApp();
+      }
+    }
+
+    // WAJIB ABSENSI KAMERA & SHIFT
+    async function openAttendanceModal() {
+      document.getElementById('attendanceModal').classList.remove('hidden');
+      const isKasir = currentUser.role === 'kasir';
+      
+      if (isKasir) {
+        document.getElementById('shiftKasAwalContainer').classList.remove('hidden');
+      }
+
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+        const video = document.getElementById('webcamVideo');
+        video.srcObject = cameraStream;
+        document.getElementById('cameraPlaceholder').classList.add('hidden');
+      } catch (e) {
+        showToast('Izin kamera ditolak/tidak ditemukan!', 'error');
+      }
+    }
+
+    function takePhoto() {
+      const video = document.getElementById('webcamVideo');
+      const canvas = document.getElementById('webcamCanvas');
+      const img = document.getElementById('capturedImage');
+
+      canvas.width = video.videoWidth || 300;
+      canvas.height = video.videoHeight || 300;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      capturedPhotoData = canvas.toDataURL('image/png');
+      img.src = capturedPhotoData;
+      img.classList.remove('hidden');
+      video.classList.add('hidden');
+
+      document.getElementById('btnCapturePhoto').classList.add('hidden');
+      document.getElementById('btnRetakePhoto').classList.remove('hidden');
+      document.getElementById('btnSubmitAttendance').disabled = false;
+    }
+
+    function resetCamera() {
+      document.getElementById('capturedImage').classList.add('hidden');
+      document.getElementById('webcamVideo').classList.remove('hidden');
+      document.getElementById('btnCapturePhoto').classList.remove('hidden');
+      document.getElementById('btnRetakePhoto').classList.add('hidden');
+      document.getElementById('btnSubmitAttendance').disabled = true;
+    }
+
+    function submitAttendanceAndShift() {
+      if (currentUser.role === 'kasir') {
+        const kasAwal = document.getElementById('inputKasAwal').value;
+        if (!kasAwal) return showToast('Kas Awal wajib diisi kasir!', 'error');
+        document.getElementById('dashKasAwal').innerText = `Rp ${Number(kasAwal).toLocaleString('id-ID')}`;
+        document.getElementById('dashShiftCard').classList.remove('hidden');
+      }
+
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+      }
+
+      document.getElementById('attendanceModal').classList.add('hidden');
+      showToast('Absensi Berhasil! Perangkat Siap.');
+      openMainApp();
+    }
+
+    function openMainApp() {
       document.getElementById('authScreen').classList.add('hidden');
       document.getElementById('appScreen').classList.remove('hidden');
-      document.getElementById('currentUserDisplay').innerText = userName || 'Admin POS';
-      document.getElementById('currentUserRole').innerText = userRole || 'Admin';
+      document.getElementById('currentUserDisplay').innerText = currentUser.name;
+      document.getElementById('currentUserRole').innerText = currentUser.role.toUpperCase();
+
       renderProductManager();
       renderPosCatalog();
+      updateFinancialReport();
     }
 
-    async function handleLogout() {
-      if (supabaseClient) await supabaseClient.auth.signOut();
-      document.getElementById('appScreen').classList.add('hidden');
-      document.getElementById('authScreen').classList.remove('hidden');
-      showToast('Berhasil keluar!', 'info');
-    }
-
-    // NAVIGASI TAB
     function switchTab(tabName) {
+      if (currentUser.role === 'kasir' && (tabName === 'produk' || tabName === 'laporan')) {
+        return showToast('Fitur ini dibatasi khusus Admin/Manajer', 'error');
+      }
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.getElementById('tab-' + tabName).classList.remove('hidden');
-      
-      const tabs = ['beranda', 'produk', 'laporan', 'lainnya'];
-      tabs.forEach(t => {
-        const btn = document.getElementById('nav-' + t);
-        if (btn) btn.className = (t === tabName) ? "flex flex-col items-center text-emerald-500 font-bold" : "flex flex-col items-center text-gray-400";
-      });
     }
 
-    // RENDERING KASIR DAN PRODUK
     function renderProductManager() {
       const container = document.getElementById('productManagerList');
       container.innerHTML = '';
       products.forEach(p => {
         container.innerHTML += `
-          <div class="bg-white p-3 rounded-2xl border border-gray-100 flex justify-between items-center shadow-sm">
+          <div class="bg-white p-3.5 rounded-2xl border border-gray-100 flex justify-between items-center shadow-sm">
             <div>
               <h4 class="font-bold text-xs text-gray-800">${p.name}</h4>
               <p class="text-xs font-bold text-emerald-600">Rp ${Number(p.price).toLocaleString('id-ID')}</p>
             </div>
-            <span class="text-xs text-gray-400">Stok: ${p.stock}</span>
+            <span class="text-xs font-extrabold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-lg">Stok: ${p.stock}</span>
           </div>`;
       });
     }
@@ -397,17 +674,18 @@
         container.innerHTML += `
           <div onclick="addToCart('${p.id}')" class="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm cursor-pointer active:scale-95 transition">
             <h4 class="font-bold text-xs text-gray-800">${p.name}</h4>
-            <p class="text-xs font-extrabold text-emerald-600">Rp ${Number(p.price).toLocaleString('id-ID')}</p>
+            <p class="text-xs font-black text-emerald-600 mt-1">Rp ${Number(p.price).toLocaleString('id-ID')}</p>
           </div>`;
       });
     }
 
     function addToCart(pId) {
       const product = products.find(p => p.id === pId);
-      if (!product) return;
+      if (!product || product.stock <= 0) return showToast('Stok Produk Habis!', 'error');
+      
       const exist = cart.find(c => c.id === pId);
       if (exist) { exist.qty++; } else { cart.push({ ...product, qty: 1 }); }
-      showToast(`${product.name} ditambahkan`);
+      showToast(`${product.name} Masuk Keranjang`);
       document.getElementById('cartCountBadge').innerText = cart.reduce((s, i) => s + i.qty, 0);
     }
 
@@ -431,11 +709,139 @@
     function hideCartModal() { document.getElementById('cartModal').classList.add('hidden'); }
 
     function processCheckout() {
-      if (cart.length === 0) return showToast('Keranjang kosong', 'error');
-      showToast('Transaksi Berhasil Diproses!', 'success');
+      if (cart.length === 0) return showToast('Keranjang Kosong!', 'error');
+      
+      cart.forEach(item => {
+        const p = products.find(prod => prod.id === item.id);
+        if (p) p.stock -= item.qty;
+        grossSales += (item.price * item.qty);
+      });
+
+      showToast('Transaksi Berhasil Diproses!');
       cart = [];
       document.getElementById('cartCountBadge').innerText = 0;
       hideCartModal();
+      renderProductManager();
+      renderPosCatalog();
+      updateFinancialReport();
+    }
+
+    // MANAJEMEN STOK (IN, OUT, RUSAK)
+    function openStockModal(type) {
+      currentActiveStockType = type;
+      const select = document.getElementById('stockProductSelect');
+      select.innerHTML = '';
+      products.forEach(p => select.innerHTML += `<option value="${p.id}">${p.name} (Stok: ${p.stock})</option>`);
+      
+      const title = type === 'in' ? 'Tambah Stok Masuk' : type === 'out' ? 'Kurangi Stok Keluar' : 'Catat Stok Rusak / Waste';
+      document.getElementById('stockModalTitle').innerText = title;
+      document.getElementById('stockModal').classList.remove('hidden');
+    }
+
+    function closeStockModal() { document.getElementById('stockModal').classList.add('hidden'); }
+
+    function submitStockChange() {
+      const pId = document.getElementById('stockProductSelect').value;
+      const qty = parseInt(document.getElementById('stockQtyInput').value) || 0;
+      const product = products.find(p => p.id === pId);
+
+      if (product) {
+        if (currentActiveStockType === 'in') product.stock += qty;
+        else product.stock = Math.max(0, product.stock - qty);
+      }
+
+      showToast('Stok Berhasil Diperbarui!');
+      closeStockModal();
+      renderProductManager();
+      renderPosCatalog();
+    }
+
+    // PENGELUARAN & KEUANGAN REALTIME
+    function openExpenseModal() { document.getElementById('expenseModal').classList.remove('hidden'); }
+    function closeExpenseModal() { document.getElementById('expenseModal').classList.add('hidden'); }
+
+    function submitExpense() {
+      const amt = parseFloat(document.getElementById('expenseAmount').value) || 0;
+      if (amt <= 0) return showToast('Nominal Pengeluaran Harus Lebih Dari 0', 'error');
+
+      totalExpenses += amt;
+      showToast('Pengeluaran Ditambahkan! Laba Otomatis Dipotong.');
+      closeExpenseModal();
+      updateFinancialReport();
+    }
+
+    function updateFinancialReport() {
+      const netProfit = grossSales - totalExpenses;
+      document.getElementById('repGrossSales').innerText = `Rp ${grossSales.toLocaleString('id-ID')}`;
+      document.getElementById('repTotalExpenses').innerText = `-Rp ${totalExpenses.toLocaleString('id-ID')}`;
+      document.getElementById('repNetProfit').innerText = `Rp ${netProfit.toLocaleString('id-ID')}`;
+      document.getElementById('dashSalesToday').innerText = `Rp ${netProfit.toLocaleString('id-ID')}`;
+    }
+
+    // EXPORT & IMPORT EXCEL PRODUK
+    function exportProductsExcel() {
+      const ws = XLSX.utils.json_to_sheet(products);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Produk");
+      XLSX.writeFile(wb, "Data_Produk_TemanCoffee.xlsx");
+    }
+
+    function importProductsExcel(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const importedData = XLSX.utils.sheet_to_json(sheet);
+        
+        if (importedData && importedData.length > 0) {
+          products = importedData.map((item, idx) => ({
+            id: String(item.id || idx + 1),
+            name: item.name || item.Nama || 'Produk Import',
+            price: Number(item.price || item.Harga || 0),
+            stock: Number(item.stock || item.Stok || 0)
+          }));
+          renderProductManager();
+          renderPosCatalog();
+          showToast('Berhasil Impor Produk dari Excel!');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    // BRANDING & IDENTITAS TOKO
+    function uploadStoreLogo(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const logoUrl = evt.target.result;
+        document.getElementById('loginAppLogoImg').src = logoUrl;
+        document.getElementById('loginAppLogoImg').classList.remove('hidden');
+        document.getElementById('loginAppLogoIcon').classList.add('hidden');
+
+        document.getElementById('mainHeaderLogo').innerHTML = `<img src="${logoUrl}" class="w-full h-full object-cover">`;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function saveStoreSettings() {
+      const storeName = document.getElementById('settingStoreName').value;
+      if (storeName) document.getElementById('loginStoreTitle').innerText = storeName;
+      showToast('Pengaturan Identitas Toko Disimpan!');
+    }
+
+    function closeShiftKasir() {
+      showToast('Shift Kasir Ditutup.');
+      document.getElementById('dashShiftCard').classList.add('hidden');
+    }
+
+    function handleLogout() {
+      document.getElementById('appScreen').classList.add('hidden');
+      document.getElementById('authScreen').classList.remove('hidden');
+      showToast('Perangkat Berhasil Keluar', 'info');
     }
   </script>
 </body>
