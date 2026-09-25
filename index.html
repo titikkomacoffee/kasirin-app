@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Modul Kasir POS - Kekinian</title>
+  <title>KasirPro POS - Supabase Connected</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Supabase JS Client -->
@@ -16,12 +16,12 @@
   <!-- TOPBAR / NAVIGASI -->
   <header class="bg-gray-800 border-b border-gray-700 px-6 py-3 flex justify-between items-center">
     <div class="flex items-center gap-3">
-      <div class="bg-indigo-600 p-2 rounded-lg">
+      <div id="brandIcon" class="bg-indigo-600 p-2 rounded-lg transition-colors">
         <i class="fa-solid fa-cash-register text-white text-xl"></i>
       </div>
       <div>
         <h1 class="font-bold text-lg leading-none">KasirPro POS</h1>
-        <span class="text-xs text-gray-400">Shift Status: <span class="text-emerald-400 font-medium">Buka (Kasir 01)</span></span>
+        <span class="text-xs text-gray-400">Database Status: <span id="dbStatus" class="text-amber-400 font-medium">Menghubungkan...</span></span>
       </div>
     </div>
 
@@ -52,7 +52,7 @@
 
         <!-- Filter Kategori Button -->
         <div class="flex gap-2 overflow-x-auto pb-1" id="categoryContainer">
-          <button onclick="setCategory('Semua')" class="cat-btn active bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition">Semua</button>
+          <button onclick="setCategory('Semua')" class="cat-btn bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition">Semua</button>
           <button onclick="setCategory('Makanan')" class="cat-btn bg-gray-800 text-gray-300 hover:bg-gray-700 px-4 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition">Makanan</button>
           <button onclick="setCategory('Minuman')" class="cat-btn bg-gray-800 text-gray-300 hover:bg-gray-700 px-4 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition">Minuman</button>
           <button onclick="setCategory('Bahan Baku')" class="cat-btn bg-gray-800 text-gray-300 hover:bg-gray-700 px-4 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition">Bahan Baku</button>
@@ -61,7 +61,7 @@
 
       <!-- Grid Katalog Produk -->
       <div id="productGrid" class="flex-1 overflow-y-auto grid grid-cols-3 gap-3 pr-1">
-        <!-- Produk dinamis dipanggil dari JavaScript -->
+        <div class="col-span-3 text-center text-gray-500 py-10 text-sm">Memuat produk dari Supabase...</div>
       </div>
     </section>
 
@@ -80,7 +80,10 @@
 
         <!-- Daftar Item di Keranjang -->
         <div id="cartItems" class="max-h-[320px] overflow-y-auto space-y-2 pr-1">
-          <!-- Item keranjang akan ditambahkan di sini -->
+          <div class="text-center py-12 text-gray-500 text-xs">
+            <i class="fa-solid fa-basket-shopping text-3xl mb-2 text-gray-600"></i><br>
+            Keranjang belanja masih kosong
+          </div>
         </div>
       </div>
 
@@ -128,7 +131,7 @@
           <button onclick="holdTransaction()" class="bg-amber-600 hover:bg-amber-500 text-white font-medium py-2 rounded-lg text-xs transition flex items-center justify-center gap-1">
             <i class="fa-solid fa-pause"></i> Simpan (Hold)
           </button>
-          <button onclick="processPayment()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-lg text-xs transition flex items-center justify-center gap-1">
+          <button id="btnPay" onclick="processPayment()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-lg text-xs transition flex items-center justify-center gap-1">
             <i class="fa-solid fa-print"></i> Bayar & Struk
           </button>
         </div>
@@ -139,34 +142,50 @@
   <!-- JAVASCRIPT LOGIC -->
   <script>
     // ----------------------------------------------------
-    // 1. SUPABASE CONFIGURATION (Ganti dengan Key Supabase Anda)
+    // 1. SUPABASE CONFIGURATION (MASUKKAN URL & KEY ANDA)
     // ----------------------------------------------------
-    const SUPABASE_URL = 'https://YOUR_SUPABASE_PROJECT.supabase.co';
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-    // const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const SUPABASE_URL = 'https://ankprmkhsqkgugzndlcx.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFua3BybWtoc3FrZ3Vnem5kbGN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNzI2NzgsImV4cCI6MjEwNTg0ODY3OH0.D48Jxrv2f51Ggl9yT5Tayme5eDAC_Eo1jpM_pmGfp-E';
+    
+    // Inisialisasi Supabase SDK
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Data Produk Dummy (Untuk Pengujian Langsung Sebelum Terhubung Database)
-    let products = [
-      { id: '1', sku: 'MKN-01', name: 'Nasi Goreng Spesial', category: 'Makanan', price: 25000, stock: 15 },
-      { id: '2', sku: 'MKN-02', name: 'Ayam Bakar Madu', category: 'Makanan', price: 28000, stock: 10 },
-      { id: '3', sku: 'MNM-01', name: 'Es Teh Manis', category: 'Minuman', price: 5000, stock: 50 },
-      { id: '4', sku: 'MNM-02', name: 'Kopi Milk Aren', category: 'Minuman', price: 18000, stock: 25 },
-      { id: '5', sku: 'BHN-01', name: 'Beras Premium 1kg', category: 'Bahan Baku', price: 14000, stock: 100 },
-      { id: '6', sku: 'BHN-02', name: 'Minyak Goreng 1L', category: 'Bahan Baku', price: 16500, stock: 40 },
-    ];
-
+    let products = [];
     let cart = [];
     let currentCategory = 'Semua';
 
     // ----------------------------------------------------
-    // 2. RENDER KATALOG PRODUK
+    // 2. MEMUAT DATA PRODUK DARI SUPABASE DATABASE
+    // ----------------------------------------------------
+    async function loadProductsFromSupabase() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('products')
+          .select('*');
+
+        if (error) throw error;
+
+        products = data || [];
+        document.getElementById('dbStatus').innerText = 'Terhubung';
+        document.getElementById('dbStatus').className = 'text-emerald-400 font-medium';
+        renderProducts(products);
+      } catch (err) {
+        console.error('Gagal mengambil data:', err.message);
+        document.getElementById('dbStatus').innerText = 'Gagal Konek / Cek API Key';
+        document.getElementById('dbStatus').className = 'text-rose-400 font-medium';
+        document.getElementById('productGrid').innerHTML = `<div class="col-span-3 text-center text-rose-400 py-10 text-xs">Gagal mengambil produk dari Supabase.<br>Pastikan SUPABASE_URL dan SUPABASE_ANON_KEY sudah diisi dengan benar.</div>`;
+      }
+    }
+
+    // ----------------------------------------------------
+    // 3. RENDER KATALOG PRODUK KE TAMPILAN
     // ----------------------------------------------------
     function renderProducts(itemsToRender = products) {
       const grid = document.getElementById('productGrid');
       grid.innerHTML = '';
 
       if (itemsToRender.length === 0) {
-        grid.innerHTML = `<div class="col-span-3 text-center text-gray-500 py-10 text-sm">Produk tidak ditemukan</div>`;
+        grid.innerHTML = `<div class="col-span-3 text-center text-gray-500 py-10 text-sm">Tidak ada produk ditemukan</div>`;
         return;
       }
 
@@ -174,11 +193,11 @@
         grid.innerHTML += `
           <div onclick="addToCart('${p.id}')" class="bg-gray-800 border border-gray-700 hover:border-indigo-500 rounded-xl p-3 cursor-pointer transition flex flex-col justify-between hover:scale-[1.02]">
             <div>
-              <span class="text-[10px] bg-gray-700 text-indigo-300 px-1.5 py-0.5 rounded font-mono">${p.sku}</span>
+              <span class="text-[10px] bg-gray-700 text-indigo-300 px-1.5 py-0.5 rounded font-mono">${p.sku || 'NO-SKU'}</span>
               <h3 class="font-semibold text-xs mt-1 text-gray-200 line-clamp-1">${p.name}</h3>
             </div>
             <div class="mt-2 flex justify-between items-end">
-              <span class="text-xs font-bold text-indigo-400">Rp ${p.price.toLocaleString('id-ID')}</span>
+              <span class="text-xs font-bold text-indigo-400">Rp ${Number(p.price).toLocaleString('id-ID')}</span>
               <span class="text-[10px] text-gray-400">Stok: ${p.stock}</span>
             </div>
           </div>
@@ -187,13 +206,13 @@
     }
 
     // ----------------------------------------------------
-    // 3. FITUR PENCARIAN & FILTER KATEGORI
+    // 4. PENCARIAN & FILTER KATEGORI
     // ----------------------------------------------------
     function filterProducts() {
       const query = document.getElementById('searchInput').value.toLowerCase();
       const filtered = products.filter(p => {
         const matchesCategory = (currentCategory === 'Semua') || (p.category === currentCategory);
-        const matchesQuery = p.name.toLowerCase().includes(query) || p.sku.toLowerCase().includes(query);
+        const matchesQuery = p.name.toLowerCase().includes(query) || (p.sku && p.sku.toLowerCase().includes(query));
         return matchesCategory && matchesQuery;
       });
       renderProducts(filtered);
@@ -203,7 +222,7 @@
       currentCategory = cat;
       document.querySelectorAll('.cat-btn').forEach(btn => {
         if(btn.innerText === cat) {
-          btn.className = "cat-btn active bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition";
+          btn.className = "cat-btn bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition";
         } else {
           btn.className = "cat-btn bg-gray-800 text-gray-300 hover:bg-gray-700 px-4 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition";
         }
@@ -212,7 +231,7 @@
     }
 
     // ----------------------------------------------------
-    // 4. MANAGEMENT KERANJANG BELANJA
+    // 5. KERANJANG BELANJA
     // ----------------------------------------------------
     function addToCart(productId) {
       const product = products.find(p => p.id === productId);
@@ -271,7 +290,7 @@
           <div class="bg-gray-900 border border-gray-700/80 rounded-lg p-2.5 flex justify-between items-center text-xs">
             <div class="flex-1 pr-2">
               <h4 class="font-medium text-gray-200">${item.name}</h4>
-              <span class="text-[11px] text-indigo-400">Rp ${item.price.toLocaleString('id-ID')}</span>
+              <span class="text-[11px] text-indigo-400">Rp ${Number(item.price).toLocaleString('id-ID')}</span>
             </div>
             <div class="flex items-center gap-2">
               <button onclick="updateQty('${item.id}', -1)" class="w-6 h-6 bg-gray-800 hover:bg-gray-700 text-white rounded flex items-center justify-center font-bold">-</button>
@@ -286,7 +305,7 @@
     }
 
     // ----------------------------------------------------
-    // 5. KALKULASI DISKON & UANG KEMBALIAN
+    // 6. KALKULASI DISKON & UANG KEMBALIAN
     // ----------------------------------------------------
     function calculateTotal() {
       const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
@@ -318,25 +337,77 @@
     }
 
     // ----------------------------------------------------
-    // 6. PROSES PEMBAYARAN & HOLD TRANSACTION
+    // 7. MENYIMPAN TRANSAKSI KE DATABASE SUPABASE
     // ----------------------------------------------------
-    function processPayment() {
+    async function processPayment() {
       if (cart.length === 0) return alert('Keranjang masih kosong!');
       
       const cash = parseFloat(document.getElementById('cashInput').value) || 0;
       const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
       const discountVal = parseFloat(document.getElementById('discountInput').value) || 0;
       const discountType = document.getElementById('discountType').value;
-      const grandTotal = discountType === 'percent' ? subtotal - (subtotal * discountVal / 100) : subtotal - discountVal;
+      const totalDiscount = discountType === 'percent' ? (subtotal * discountVal / 100) : discountVal;
+      const grandTotal = Math.max(0, subtotal - totalDiscount);
 
       if (cash < grandTotal) {
         return alert('Nominal uang bayar kurang dari total belanja!');
       }
 
-      alert('Transaksi Berhasil Ditutup! Struk dapat dicetak.');
-      clearCart();
-      document.getElementById('cashInput').value = '';
-      document.getElementById('discountInput').value = '0';
+      const btnPay = document.getElementById('btnPay');
+      btnPay.disabled = true;
+      btnPay.innerText = "Memproses...";
+
+      try {
+        const trxCode = 'TRX-' + Date.now();
+
+        // 1. Simpan Header Transaksi ke Supabase[span_2](start_span)[span_2](end_span)
+        const { data: trxData, error: trxError } = await supabaseClient
+          .from('transactions')
+          .insert([{
+            trx_code: trxCode,
+            total_amount: grandTotal,
+            discount: totalDiscount,
+            payment_method: 'CASH',
+            cash_amount: cash,
+            change_amount: cash - grandTotal,
+            status: 'PAID'
+          }])
+          .select();
+
+        if (trxError) throw trxError;
+
+        const transactionId = trxData[0].id;
+
+        // 2. Simpan Item Detail Transaksi[span_3](start_span)[span_3](end_span)
+        const itemsToInsert = cart.map(item => ({
+          transaction_id: transactionId,
+          product_id: item.id,
+          quantity: item.qty,
+          price: item.price,
+          subtotal: item.price * item.qty
+        }));
+
+        const { error: itemError } = await supabaseClient
+          .from('transaction_items')
+          .insert(itemsToInsert);
+
+        if (itemError) throw itemError;
+
+        alert(`Transaksi ${trxCode} Berhasil Disimpan Ke Database!`);
+        clearCart();
+        document.getElementById('cashInput').value = '';
+        document.getElementById('discountInput').value = '0';
+        
+        // Refresh katalog produk (jika stok terupdate)
+        loadProductsFromSupabase();
+
+      } catch (err) {
+        console.error('Error simpan transaksi:', err.message);
+        alert('Gagal menyimpan transaksi: ' + err.message);
+      } finally {
+        btnPay.disabled = false;
+        btnPay.innerHTML = `<i class="fa-solid fa-print"></i> Bayar & Struk`;
+      }
     }
 
     function holdTransaction() {
@@ -346,23 +417,23 @@
     }
 
     // ----------------------------------------------------
-    // 7. GANTI TEMA WARNA APLIKASI
+    // 8. TEMA WARNA
     // ----------------------------------------------------
     function changeTheme(theme) {
-      const headerIcon = document.querySelector('header .bg-indigo-600');
+      const brandIcon = document.getElementById('brandIcon');
       if (theme === 'emerald') {
-        headerIcon.className = "bg-emerald-600 p-2 rounded-lg";
+        brandIcon.className = "bg-emerald-600 p-2 rounded-lg transition-colors";
       } else if (theme === 'rose') {
-        headerIcon.className = "bg-rose-600 p-2 rounded-lg";
+        brandIcon.className = "bg-rose-600 p-2 rounded-lg transition-colors";
       } else if (theme === 'amber') {
-        headerIcon.className = "bg-amber-600 p-2 rounded-lg";
+        brandIcon.className = "bg-amber-600 p-2 rounded-lg transition-colors";
       } else {
-        headerIcon.className = "bg-indigo-600 p-2 rounded-lg";
+        brandIcon.className = "bg-indigo-600 p-2 rounded-lg transition-colors";
       }
     }
 
-    // Inisialisasi Pertama
-    renderProducts();
+    // Jalankan pertama kali saat halaman dibuka
+    loadProductsFromSupabase();
   </script>
 </body>
 </html>
