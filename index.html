@@ -1,141 +1,873 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TEMAN COFFEE POS</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teman Coffee Kupang - Admin POS</title>
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #d1fae5;
+            --purple: #7c3aed;
+            --bg-gray: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-dark: #1f2937;
+            --text-muted: #6b7280;
+            --danger: #ef4444;
+            --border: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-gray);
+            color: var(--text-dark);
+            padding-bottom: 75px;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+        }
+
+        /* Header Styling */
+        .app-header {
+            background-color: var(--purple);
+            color: white;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-header h1 {
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .app-header p {
+            font-size: 11px;
+            opacity: 0.85;
+            margin-top: 2px;
+        }
+
+        .btn-logout {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Container & Sections */
+        .container {
+            padding: 16px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .metric-card {
+            background: var(--card-bg);
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .metric-card .label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .metric-card .value {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .text-green { color: var(--primary); }
+
+        /* Operasional Menu */
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .operational-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .op-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .op-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-bottom: 6px;
+        }
+
+        .op-item span {
+            font-size: 11px;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        /* Search & Actions Header */
+        .action-header {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-outline {
+            background-color: white;
+            border: 1px solid var(--border);
+            color: var(--text-dark);
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-size: 13px;
+            margin-bottom: 12px;
+            outline: none;
+            background-color: white;
+        }
+
+        /* Product List Card */
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .product-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            background-color: #f3f4f6;
+            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .product-info {
+            flex: 1;
+        }
+
+        .product-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .product-tag {
+            display: inline-block;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background-color: #f3e8ff;
+            color: var(--purple);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .product-sku {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .product-price {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .product-hpp {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-left: 6px;
+        }
+
+        .product-stock {
+            font-size: 11px;
+            color: #d97706;
+            background-color: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 4px;
+        }
+
+        .product-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px;
+        }
+
+        .btn-icon:hover {
+            color: var(--text-dark);
+        }
+
+        .btn-icon.delete:hover {
+            color: var(--danger);
+        }
+
+        /* Navigation Bar Bottom */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background-color: white;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            background: none;
+            border: none;
+            width: 20%;
+        }
+
+        .nav-item i {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item.kasir-btn i {
+            background-color: var(--primary);
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: -16px;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Modal Form */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 200;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .modal-content {
+            background-color: white;
+            width: 100%;
+            max-width: 480px;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+            padding: 20px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.2s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .modal-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans antialiased text-gray-800 min-h-screen pb-24">
+<body>
 
-  <!-- HEADER BAR UTAMA -->
-  <header class="bg-purple-700 text-white p-4 shadow-md sticky top-0 z-40 flex justify-between items-center">
-    <div class="flex items-center space-x-3">
-      <img id="storeLogoHeader" src="" alt="Logo Toko" class="w-9 h-9 rounded-full border-2 border-white object-cover hidden">
-      <div>
-        <h1 id="storeNameHeader" class="font-bold text-base leading-tight">TEMAN COFFEE POS</h1>
-        <p id="userStatusHeader" class="text-[11px] text-purple-200">Memuat profil...</p>
-      </div>
-    </div>
-    <div class="flex items-center gap-2">
-      <button onclick="handleUserLogout()" class="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5">
-        <i class="fa-solid fa-right-from-bracket"></i> Keluar
-      </button>
-    </div>
-  </header>
-
-  <!-- KONTEN UTAMA -->
-  <main class="max-w-md mx-auto p-4 space-y-4">
-
-    <!-- TAB 1: DASHBOARD -->
-    <section id="tabDashboard" class="tab-content space-y-4">
-      <div class="grid grid-cols-2 gap-3">
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-1">
-          <span class="text-[10px] text-gray-400 font-bold uppercase">Total Pesanan</span>
-          <p id="dashTotalOrdersText" class="text-xl font-black text-gray-800">0</p>
-        </div>
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-1">
-          <span class="text-[10px] text-gray-400 font-bold uppercase">Penjualan Hari Ini</span>
-          <p id="dashTotalSalesText" class="text-xl font-black text-emerald-600">Rp 0</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 2: KASIR -->
-    <section id="tabKasir" class="tab-content hidden space-y-4">
-      <div class="relative">
-        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-xs"></i>
-        <input type="text" id="searchProductInput" placeholder="Cari menu produk..." class="w-full bg-white border border-gray-200 rounded-2xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-purple-600">
-      </div>
-      <div id="productGrid" class="grid grid-cols-2 gap-3"></div>
-    </section>
-
-    <!-- TAB 3: PENGATURAN TOKO (ADMIN ONLY) -->
-    <section id="tabPengaturan" class="tab-content hidden space-y-4">
-      <div id="sectionStoreMgmt" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3 hidden">
-        <h3 class="font-bold text-xs text-gray-800 uppercase flex items-center gap-2 border-b pb-2">
-          <i class="fa-solid fa-store text-purple-600"></i> Pengaturan Toko & Struk Cetak
-        </h3>
+    <!-- Header App -->
+    <header class="app-header">
         <div>
-          <label class="text-[11px] font-bold text-gray-500">Nama Toko</label>
-          <input type="text" id="storeNameInput" placeholder="TEMAN COFFEE KUPANG" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
+            <h1>Teman Coffee Kupang</h1>
+            <p>ADMIN: Owner Teco Kupang</p>
         </div>
-        <div>
-          <label class="text-[11px] font-bold text-gray-500">Alamat Toko</label>
-          <input type="text" id="storeAddressInput" placeholder="Jl. M. Praja No. 12, Kupang" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
-        </div>
-        <div>
-          <label class="text-[11px] font-bold text-gray-500">Nomor Telepon Toko</label>
-          <input type="text" id="storePhoneInput" placeholder="081234567890" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
-        </div>
-        <div>
-          <label class="text-[11px] font-bold text-gray-500">URL Logo Toko</label>
-          <input type="text" id="storeLogoUrlInput" placeholder="https://..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
-        </div>
-        <button onclick="saveStoreSettingsToSupabase()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-md">
-          Simpan Data Toko ke Supabase
+        <button class="btn-logout" onclick="alert('Berhasil Logout')">
+            <i class="fa-solid fa-right-from-bracket"></i> Keluar
         </button>
-      </div>
-    </section>
-  </main>
+    </header>
 
-  <!-- BOTTOM NAVIGATION -->
-  <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 py-2 px-4 flex justify-between items-center z-50 max-w-md mx-auto">
-    <button onclick="switchTab('Dashboard')" id="navDashboard" class="nav-item text-purple-600 flex flex-col items-center gap-1">
-      <i class="fa-solid fa-house text-base"></i>
-      <span class="text-[10px] font-bold">Beranda</span>
-    </button>
-    <button onclick="switchTab('Kasir')" id="navKasir" class="nav-item text-gray-400 flex flex-col items-center gap-1">
-      <i class="fa-solid fa-cash-register text-base"></i>
-      <span class="text-[10px] font-bold">Kasir</span>
-    </button>
-    <button onclick="openPaymentModal()" class="relative bg-purple-600 text-white p-3 rounded-full shadow-lg hover:bg-purple-700 transition -mt-5 border-4 border-gray-100">
-      <i class="fa-solid fa-cart-shopping text-lg"></i>
-      <span id="cartCountBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
-    </button>
-    <button onclick="switchTab('Pengaturan')" id="navPengaturan" class="nav-item text-gray-400 flex flex-col items-center gap-1">
-      <i class="fa-solid fa-gear text-base"></i>
-      <span class="text-[10px] font-bold">Pengaturan</span>
-    </button>
-  </nav>
+    <!-- Main Container -->
+    <div class="container">
 
-  <!-- MODAL PEMBAYARAN -->
-  <div id="paymentModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl overflow-y-auto max-h-[90vh]">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-gray-800 text-sm">Pembayaran Transaksi</h3>
-        <button onclick="closePaymentModal()" class="text-gray-400 text-xl font-bold">&times;</button>
-      </div>
+        <!-- TAB 1: BERANDA -->
+        <section id="tab-beranda" class="tab-content active">
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="label">Total Pesanan</div>
+                    <div class="value">0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="label">Penjualan Hari Ini</div>
+                    <div class="value text-green">Rp 0</div>
+                </div>
+            </div>
 
-      <div class="bg-purple-50 p-4 rounded-2xl text-center space-y-1">
-        <p class="text-[11px] text-gray-500 font-medium">Total Pembayaran</p>
-        <p id="payModalTotalText" class="text-2xl font-black text-purple-700">Rp 0</p>
-      </div>
+            <div class="section-title">
+                <span>Operasional</span>
+                <a href="#" style="font-size: 12px; color: var(--primary); text-decoration: none;" onclick="switchTab('produk')">Lihat Semua Fitur &gt;</a>
+            </div>
 
-      <div class="grid grid-cols-2 gap-2">
-        <button id="btnPayCash" onclick="selectPaymentMethod('CASH')" class="p-3 border-2 border-purple-600 rounded-2xl bg-purple-50 text-purple-700 font-bold text-xs flex flex-col items-center gap-1">
-          <i class="fa-solid fa-money-bill-wave text-lg"></i> Tunai (Cash)
-        </button>
-        <button id="btnPayQris" onclick="selectPaymentMethod('PAKASIR_QRIS')" class="p-3 border-2 border-gray-200 rounded-2xl bg-gray-50 text-gray-600 font-bold text-xs flex flex-col items-center gap-1">
-          <i class="fa-solid fa-qrcode text-lg"></i> PAKASIR QRIS
-        </button>
-      </div>
+            <div class="operational-grid">
+                <div class="op-item" onclick="switchTab('produk')">
+                    <div class="op-icon" style="background-color: #ffedd5; color: #ea580c;">
+                        <i class="fa-solid fa-box"></i>
+                    </div>
+                    <span>Kelola Produk</span>
+                </div>
+                <div class="op-item" onclick="switchTab('laporan')">
+                    <div class="op-icon" style="background-color: #ccfbf1; color: #0d9488;">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <span>Laporan</span>
+                </div>
+                <div class="op-item">
+                    <div class="op-icon" style="background-color: #fef3c7; color: #d97706;">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <span>Pengeluaran</span>
+                </div>
+                <div class="op-item">
+                    <div class="op-icon" style="background-color: #fce7f3; color: #db2777;">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <span>Pelanggan</span>
+                </div>
+            </div>
 
-      <!-- AREA GAMBAR DYNAMIC QRIS PAKASIR -->
-      <div id="qrisDisplayArea" class="hidden text-center p-3 bg-gray-50 rounded-2xl border border-purple-200 space-y-2">
-        <p class="text-[11px] font-bold text-purple-700">Scan QRIS PAKASIR di bawah ini:</p>
-        <div class="bg-white p-2 rounded-xl inline-block shadow-sm">
-          <img id="qrisImage" src="" alt="Pakasir QRIS Dynamic" class="w-48 h-48 mx-auto object-contain">
-        </div>
-        <p class="text-[10px] text-gray-400">QRIS dibuat otomatis oleh Supabase Server</p>
-      </div>
+            <div class="section-title">
+                <span><i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i> Stok Menipis</span>
+            </div>
+            <div id="low-stock-list">
+                <!-- Stok menipis dirender otomatis via JS -->
+            </div>
+        </section>
+
+        <!-- TAB 2: PRODUK (DENGAN MANAJEMEN LENGKAP) -->
+        <section id="tab-produk" class="tab-content">
+            <div class="action-header">
+                <button class="btn btn-outline" style="flex:1;" onclick="triggerImportExcel()">
+                    <i class="fa-solid fa-upload"></i> Impor Excel
+                </button>
+                <button class="btn btn-primary" style="flex:1;" onclick="openProductModal()">
+                    <i class="fa-solid fa-plus"></i> Tambah
+                </button>
+                <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" style="display:none;" onchange="handleExcelImport(event)">
+            </div>
+
+            <input type="text" id="search-product" class="search-box" placeholder="Cari produk berdasarkan nama / SKU..." oninput="renderProducts()">
+
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;" id="product-count">
+                0 produk ditemukan
+            </div>
+
+            <!-- List Tempat Produk -->
+            <div id="product-list-container"></div>
+        </section>
+
+        <!-- TAB 3: KASIR -->
+        <section id="tab-kasir" class="tab-content">
+            <h2 style="font-size: 16px; margin-bottom: 12px;">Point of Sale (Kasir)</h2>
+            <input type="text" class="search-box" placeholder="Cari nama produk atau scan barcode...">
+            <div id="kasir-product-list">
+                <!-- List Produk untuk Transaksi -->
+            </div>
+        </section>
+
+        <!-- TAB 4: LAPORAN -->
+        <section id="tab-laporan" class="tab-content">
+            <h2 style="font-size: 16px; margin-bottom: 12px;">Laporan Penjualan</h2>
+            <div class="metric-card" style="margin-bottom: 12px;">
+                <div class="label">Total Omzet Hari Ini</div>
+                <div class="value text-green" id="report-omzet">Rp 0</div>
+            </div>
+            <p style="font-size: 12px; color: var(--text-muted); text-align: center; margin-top: 20px;">
+                Belum ada transaksi penjualan pada tanggal terpilih.
+            </p>
+        </section>
+
+        <!-- TAB 5: PENGATURAN / LAINNYA -->
+        <section id="tab-pengaturan" class="tab-content">
+            <h2 style="font-size: 16px; margin-bottom: 12px;">Pengaturan Toko</h2>
+            <div class="metric-card" style="margin-bottom: 8px; cursor: pointer;" onclick="alert('Fitur Kategori Produk')">
+                <div style="font-weight: 600; font-size: 13px;"><i class="fa-solid fa-tags"></i> Kategori Produk</div>
+            </div>
+            <div class="metric-card" style="margin-bottom: 8px; cursor: pointer;" onclick="alert('Fitur Metode Pembayaran')">
+                <div style="font-weight: 600; font-size: 13px;"><i class="fa-solid fa-credit-card"></i> Metode Pembayaran</div>
+            </div>
+            <div class="metric-card" style="margin-bottom: 8px; cursor: pointer;" onclick="alert('Pengaturan Struk')">
+                <div style="font-weight: 600; font-size: 13px;"><i class="fa-solid fa-print"></i> Pengaturan Struk Cetak</div>
+            </div>
+        </section>
+
     </div>
-  </div>
 
-  <script src="script.js"></script>
+    <!-- MODAL FORM TAMBAH / EDIT PRODUK -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Tambah Produk Baru</h3>
+                <button class="btn-icon" onclick="closeProductModal()"><i class="fa-solid fa-xmark" style="font-size:18px;"></i></button>
+            </div>
+            <form id="product-form" onsubmit="saveProduct(event)">
+                <input type="hidden" id="prod-id">
+                <div class="form-group">
+                    <label>Nama Produk *</label>
+                    <input type="text" id="prod-name" class="form-control" placeholder="Contoh: Americano" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>SKU</label>
+                        <input type="text" id="prod-sku" class="form-control" placeholder="CFE-0101">
+                    </div>
+                    <div class="form-group">
+                        <label>Kategori</label>
+                        <select id="prod-category" class="form-control">
+                            <option value="Coffee">Coffee</option>
+                            <option value="Signature Coffee">Signature Coffee</option>
+                            <option value="Non-Coffee">Non-Coffee</option>
+                            <option value="Snack">Snack</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Harga Jual (Rp) *</label>
+                        <input type="number" id="prod-price" class="form-control" placeholder="8000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>HPP / Modal (Rp)</label>
+                        <input type="number" id="prod-hpp" class="form-control" placeholder="1000">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Stok Awal</label>
+                        <input type="number" id="prod-stock" class="form-control" placeholder="10" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Satuan</label>
+                        <input type="text" id="prod-unit" class="form-control" placeholder="cup / pcs" value="cup">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Gambar Produk</label>
+                    <input type="file" id="prod-image" class="form-control" accept="image/*" onchange="previewImage(event)">
+                    <img id="img-preview" src="" style="display:none; width: 60px; height: 60px; margin-top: 8px; border-radius: 8px; object-fit: cover;">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; margin-top: 8px;">Simpan Produk</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Navigation Bar Bawah -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="switchTab('beranda')">
+            <i class="fa-solid fa-house"></i>
+            <span>Beranda</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('produk')">
+            <i class="fa-solid fa-box"></i>
+            <span>Produk</span>
+        </button>
+        <button class="nav-item kasir-btn" onclick="switchTab('kasir')">
+            <i class="fa-solid fa-cash-register"></i>
+            <span>Kasir</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('laporan')">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>Laporan</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('pengaturan')">
+            <i class="fa-solid fa-gear"></i>
+            <span>Lainnya</span>
+        </button>
+    </nav>
+
+    <!-- JavaScript Logika Aplikasi -->
+    <script>
+        // Data Produk Default (Sesuai dengan screenshot)
+        let products = [
+            { id: 1, name: 'Americano', sku: 'CFE-0101', category: 'Coffee', price: 8000, hpp: 1000, stock: 3, unit: 'cup', image: '' },
+            { id: 2, name: 'Redberrycano', sku: 'CFE-0102', category: 'Coffee', price: 12000, hpp: 1000, stock: 2, unit: 'cup', image: '' },
+            { id: 3, name: 'Luma Pearl', sku: 'CFE-0103', category: 'Coffee', price: 12000, hpp: 1000, stock: 1, unit: 'cup', image: '' },
+            { id: 4, name: 'Golden Drift', sku: 'CFE-0104', category: 'Coffee', price: 12000, hpp: 1000, stock: 1, unit: 'cup', image: '' },
+            { id: 5, name: 'Kahwa', sku: 'CFE-0105', category: 'Coffee', price: 10000, hpp: 1000, stock: 3, unit: 'cup', image: '' },
+            { id: 6, name: 'Renjana', sku: 'SGC-0201', category: 'Signature Coffee', price: 15000, hpp: 2000, stock: 10, unit: 'cup', image: '' }
+        ];
+
+        let currentImageData = '';
+
+        // Inisialisasi
+        document.addEventListener("DOMContentLoaded", () => {
+            renderProducts();
+            renderLowStock();
+        });
+
+        // Tab Switcher Function
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+
+            const selectedTab = document.getElementById(`tab-${tabName}`);
+            if (selectedTab) selectedTab.classList.add('active');
+
+            const navIndex = ['beranda', 'produk', 'kasir', 'laporan', 'pengaturan'].indexOf(tabName);
+            if (navIndex !== -1) {
+                document.querySelectorAll('.nav-item')[navIndex].classList.add('active');
+            }
+        }
+
+        // Render List Produk
+        function renderProducts() {
+            const container = document.getElementById('product-list-container');
+            const searchQuery = document.getElementById('search-product').value.toLowerCase();
+            container.innerHTML = '';
+
+            const filteredProducts = products.filter(p => 
+                p.name.toLowerCase().includes(searchQuery) || p.sku.toLowerCase().includes(searchQuery)
+            );
+
+            document.getElementById('product-count').innerText = `${filteredProducts.length} produk ditemukan`;
+
+            filteredProducts.forEach(product => {
+                const imgElement = product.image 
+                    ? `<img src="${product.image}" class="product-img">`
+                    : `<div class="product-img"><i class="fa-solid fa-box"></i></div>`;
+
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    ${imgElement}
+                    <div class="product-info">
+                        <div class="product-title">${product.name}</div>
+                        <span class="product-tag">${product.category}</span>
+                        <div class="product-sku">SKU: ${product.sku || '-'}</div>
+                        <div>
+                            <span class="product-price">Rp ${product.price.toLocaleString('id-ID')}</span>
+                            <span class="product-hpp">HPP: Rp ${product.hpp.toLocaleString('id-ID')}</span>
+                        </div>
+                        <div class="product-stock">Stok: ${product.stock} ${product.unit}</div>
+                    </div>
+                    <div class="product-actions">
+                        <button class="btn-icon" onclick="editProduct(${product.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn-icon delete" onclick="deleteProduct(${product.id})" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            renderKasirProducts(filteredProducts);
+        }
+
+        // Render Low Stock Widget
+        function renderLowStock() {
+            const container = document.getElementById('low-stock-list');
+            container.innerHTML = '';
+            const lowStockProducts = products.filter(p => p.stock <= 3);
+
+            lowStockProducts.forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'product-card';
+                item.style.padding = '8px 12px';
+                item.innerHTML = `
+                    <div style="flex:1; font-size:13px; font-weight:600;">${p.name}</div>
+                    <span style="font-size:11px; color:#ef4444; background:#fee2e2; padding:2px 8px; border-radius:4px;">Sisa ${p.stock} ${p.unit}</span>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Render Kasir Products
+        function renderKasirProducts(productList) {
+            const container = document.getElementById('kasir-product-list');
+            if(!container) return;
+            container.innerHTML = '';
+
+            productList.forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'product-card';
+                item.innerHTML = `
+                    <div style="flex:1;">
+                        <div style="font-weight:600;">${p.name}</div>
+                        <div style="color:var(--primary); font-weight:700;">Rp ${p.price.toLocaleString('id-ID')}</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="alert('Berhasil menambah ${p.name} ke keranjang')">+</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Modal Handlers
+        function openProductModal(isEdit = false) {
+            document.getElementById('product-modal').style.display = 'flex';
+            if (!isEdit) {
+                document.getElementById('modal-title').innerText = 'Tambah Produk Baru';
+                document.getElementById('product-form').reset();
+                document.getElementById('prod-id').value = '';
+                document.getElementById('img-preview').style.display = 'none';
+                currentImageData = '';
+            }
+        }
+
+        function closeProductModal() {
+            document.getElementById('product-modal').style.display = 'none';
+        }
+
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentImageData = e.target.result;
+                    const img = document.getElementById('img-preview');
+                    img.src = currentImageData;
+                    img.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // CRUD Actions
+        function saveProduct(event) {
+            event.preventDefault();
+            const id = document.getElementById('prod-id').value;
+            const name = document.getElementById('prod-name').value;
+            const sku = document.getElementById('prod-sku').value;
+            const category = document.getElementById('prod-category').value;
+            const price = parseInt(document.getElementById('prod-price').value) || 0;
+            const hpp = parseInt(document.getElementById('prod-hpp').value) || 0;
+            const stock = parseInt(document.getElementById('prod-stock').value) || 0;
+            const unit = document.getElementById('prod-unit').value || 'cup';
+
+            if (id) {
+                // Edit
+                const index = products.findIndex(p => p.id == id);
+                if (index !== -1) {
+                    products[index] = {
+                        ...products[index],
+                        name, sku, category, price, hpp, stock, unit,
+                        image: currentImageData || products[index].image
+                    };
+                }
+            } else {
+                // Tambah
+                const newProduct = {
+                    id: Date.now(),
+                    name, sku, category, price, hpp, stock, unit,
+                    image: currentImageData
+                };
+                products.unshift(newProduct);
+            }
+
+            renderProducts();
+            renderLowStock();
+            closeProductModal();
+        }
+
+        function editProduct(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            document.getElementById('modal-title').innerText = 'Edit Produk';
+            document.getElementById('prod-id').value = product.id;
+            document.getElementById('prod-name').value = product.name;
+            document.getElementById('prod-sku').value = product.sku;
+            document.getElementById('prod-category').value = product.category;
+            document.getElementById('prod-price').value = product.price;
+            document.getElementById('prod-hpp').value = product.hpp;
+            document.getElementById('prod-stock').value = product.stock;
+            document.getElementById('prod-unit').value = product.unit;
+
+            if (product.image) {
+                currentImageData = product.image;
+                const img = document.getElementById('img-preview');
+                img.src = product.image;
+                img.style.display = 'block';
+            } else {
+                document.getElementById('img-preview').style.display = 'none';
+            }
+
+            openProductModal(true);
+        }
+
+        function deleteProduct(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
+                products = products.filter(p => p.id !== id);
+                renderProducts();
+                renderLowStock();
+            }
+        }
+
+        // Import Excel Handler
+        function triggerImportExcel() {
+            document.getElementById('excel-file-input').click();
+        }
+
+        function handleExcelImport(event) {
+            const file = event.target.files[0];
+            if (file) {
+                alert(`File "${file.name}" berhasil diunggah. Data produk akan diperbarui.`);
+                // Logika parsing file excel/CSV dapat diterapkan di sini jika menggunakan perpustakaan seperti XLSX.js
+            }
+        }
+    </script>
 </body>
-  </html>
+</html>
