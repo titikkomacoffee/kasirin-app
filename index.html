@@ -3,145 +3,209 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>POS Kasir Pintar</title>
-
-  <!-- Tailwind CSS CDN -->
+  <title>TEMAN COFFEE POS</title>
+  <!-- Tailwind CSS & FontAwesome Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Toastify JS (Notifikasi Pop-up Modern) -->
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </head>
-<body class="bg-gray-100 font-sans antialiased text-gray-800 min-h-screen pb-20">
+<body class="bg-gray-100 font-sans antialiased text-gray-800 min-h-screen pb-24">
 
-  <!-- TOP BAR / HEADER -->
+  <!-- HEADER BAR UTAMA -->
   <header class="bg-purple-700 text-white p-4 shadow-md sticky top-0 z-40 flex justify-between items-center">
-    <div class="flex items-center space-x-3">
-      <img id="storeLogoHeader" src="https://via.placeholder.com/40" alt="Logo" class="w-10 h-10 rounded-full border-2 border-white object-cover hidden">
-      <div>
-        <h1 id="storeNameHeader" class="font-bold text-base leading-tight">TEMAN COFFEE POS</h1>
-        <!-- Keterangan Pengguna Andi -->
-        <p id="userStatusHeader" class="text-[11px] text-purple-200">Kasir: Andi (Shift Aktif)</p>
-      </div>
+    <div>
+      <h1 id="storeNameHeader" class="font-bold text-base leading-tight">TEMAN COFFEE POS</h1>
+      <p id="userStatusHeader" class="text-[11px] text-purple-200">Memuat profil...</p>
     </div>
     <div class="flex items-center gap-2">
-      <!-- Tombol Absensi Foto Kamera -->
-      <button onclick="openAttendanceModal()" class="bg-purple-800 hover:bg-purple-900 text-white text-xs px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5">
+      <!-- Tombol Absen (Hanya untuk Kasir & Manajer) -->
+      <button id="btnAbsenHeader" onclick="openAttendanceModal()" class="bg-purple-800 hover:bg-purple-900 text-white text-xs px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 hidden">
         <i class="fa-solid fa-camera"></i> Absen
       </button>
-      <!-- Tombol Logout Eksplisit -->
       <button onclick="handleUserLogout()" class="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5">
         <i class="fa-solid fa-right-from-bracket"></i> Keluar
       </button>
     </div>
   </header>
 
-  <!-- KONTEN UTAMA (TAB SYSTEM) -->
+  <!-- KONTEN APLIKASI (TAB VIEW) -->
   <main class="max-w-md mx-auto p-4 space-y-4">
 
-    <!-- TAB 1: KASIR & KERANJANG -->
-    <section id="tabKasir" class="tab-content space-y-4">
-      <!-- Search & Filter Produk -->
-      <div class="flex gap-2">
-        <div class="relative flex-1">
-          <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-xs"></i>
-          <input type="text" id="searchProductInput" oninput="filterProducts()" placeholder="Cari menu / produk..." class="w-full bg-white border border-gray-200 rounded-2xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-purple-600">
+    <!-- ==================== TAB 1: DASHBOARD ==================== -->
+    <section id="tabDashboard" class="tab-content space-y-4">
+      <!-- Ringkasan Penjualan -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-1">
+          <span class="text-[10px] text-gray-400 font-bold uppercase">Total Pesanan</span>
+          <p id="dashTotalOrdersText" class="text-xl font-black text-gray-800">0</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-1">
+          <span class="text-[10px] text-gray-400 font-bold uppercase">Penjualan Hari Ini</span>
+          <p id="dashTotalSalesText" class="text-xl font-black text-emerald-600">Rp 0</p>
         </div>
       </div>
 
-      <!-- Grid Daftar Produk -->
-      <div id="productGrid" class="grid grid-cols-2 gap-3">
-        <!-- Card Produk dimuat via JavaScript -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-1">
+        <span class="text-[10px] text-gray-400 font-bold uppercase">Pengeluaran Hari Ini</span>
+        <p id="dashTotalExpenseText" class="text-xl font-black text-red-500">Rp 0</p>
       </div>
-    </section>
 
-    <!-- TAB 2: PENGELUARAN & LABA RUGI -->
-    <section id="tabLaporan" class="tab-content hidden space-y-4">
-      <!-- Ringkasan Keuangan Hari Ini -->
+      <!-- Menu Pintar Operasional -->
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
-        <h3 class="font-bold text-xs uppercase text-gray-500 tracking-wider">Ringkasan Hari Ini</h3>
-        <div class="grid grid-cols-2 gap-2 text-center">
-          <div class="bg-purple-50 p-3 rounded-xl">
-            <p class="text-[10px] text-gray-500">Pendapatan</p>
-            <p id="todaySalesText" class="font-black text-purple-700 text-sm">Rp 0</p>
-          </div>
-          <div class="bg-red-50 p-3 rounded-xl">
-            <p class="text-[10px] text-gray-500">Pengeluaran</p>
-            <p id="todayExpenseText" class="font-black text-red-600 text-sm">Rp 0</p>
-          </div>
-        </div>
-        <div class="bg-emerald-50 p-3 rounded-xl text-center">
-          <p class="text-[10px] text-gray-500">Laba Bersih (Otomatis Dipotong Pengeluaran)</p>
-          <p id="todayNetProfitText" class="font-black text-emerald-600 text-base">Rp 0</p>
-        </div>
-      </div>
-
-      <!-- Form Input Pengeluaran -->
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
-        <h3 class="font-bold text-xs text-gray-800 flex items-center gap-2">
-          <i class="fa-solid fa-receipt text-red-500"></i> Tambah Pengeluaran
+        <h3 class="font-bold text-xs text-gray-800 uppercase flex items-center gap-1.5">
+          <i class="fa-solid fa-wand-magic-sparkles text-purple-600"></i> Menu Operasional
         </h3>
-        <select id="expenseCategorySelect" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none">
-          <option value="">Pilih Kategori Pengeluaran...</option>
-        </select>
-        <input type="number" id="expenseAmountInput" placeholder="Jumlah (Rp)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none">
-        <input type="text" id="expenseNoteInput" placeholder="Catatan pengeluaran (opsional)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none">
-        <button onclick="submitExpense()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-xl text-xs shadow transition">
-          Simpan Pengeluaran
-        </button>
-      </div>
-    </section>
-
-    <!-- TAB 3: PENGATURAN TOKO & METODE PEMBAYARAN -->
-    <section id="tabPengaturan" class="tab-content hidden space-y-4">
-      
-      <!-- 1. KELOLA METODE PEMBAYARAN (ADMIN) -->
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
-        <div class="flex justify-between items-center border-b pb-2">
-          <div>
-            <h3 class="font-bold text-xs text-gray-800 uppercase flex items-center gap-2">
-              <i class="fa-solid fa-wallet text-purple-600"></i> Pengaturan Pembayaran
-            </h3>
-            <p class="text-[10px] text-gray-400">Atur pilihan metode pembayaran di kasir</p>
-          </div>
-          <button onclick="openAddPaymentMethodModal()" class="bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-1 rounded-xl text-xs font-bold">
-            + Tambah
+        <div class="grid grid-cols-4 gap-2 text-center">
+          <button onclick="switchTab('Kasir')" class="p-2 bg-purple-50 rounded-2xl flex flex-col items-center hover:bg-purple-100 transition">
+            <i class="fa-solid fa-cash-register text-purple-600 text-lg mb-1"></i>
+            <span class="text-[10px] font-bold text-gray-700">Kasir</span>
+          </button>
+          <button onclick="switchTab('Laporan')" class="p-2 bg-emerald-50 rounded-2xl flex flex-col items-center hover:bg-emerald-100 transition">
+            <i class="fa-solid fa-chart-line text-emerald-600 text-lg mb-1"></i>
+            <span class="text-[10px] font-bold text-gray-700">Laporan</span>
+          </button>
+          <button onclick="switchTab('Pengaturan')" class="p-2 bg-amber-50 rounded-2xl flex flex-col items-center hover:bg-amber-100 transition">
+            <i class="fa-solid fa-boxes-stacked text-amber-600 text-lg mb-1"></i>
+            <span class="text-[10px] font-bold text-gray-700">Produk</span>
+          </button>
+          <button onclick="switchTab('Pengaturan')" class="p-2 bg-pink-50 rounded-2xl flex flex-col items-center hover:bg-pink-100 transition">
+            <i class="fa-solid fa-users text-pink-600 text-lg mb-1"></i>
+            <span class="text-[10px] font-bold text-gray-700">Karyawan</span>
           </button>
         </div>
-        <div id="paymentMethodsAdminList" class="space-y-2">
-          <!-- Item metode pembayaran dimuat dinamis -->
+      </div>
+
+      <!-- Peringatan Stok Menipis -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+        <h3 class="font-bold text-xs text-amber-600 uppercase flex items-center gap-1.5">
+          <i class="fa-solid fa-triangle-exclamation"></i> Stok Menipis (&lt; 5)
+        </h3>
+        <div id="lowStockList" class="space-y-2">
+          <p class="text-xs text-gray-400">Semua stok produk aman.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: KASIR ==================== -->
+    <section id="tabKasir" class="tab-content hidden space-y-4">
+      <!-- Status Shift Bar -->
+      <div class="bg-white p-3 rounded-2xl shadow-sm border border-purple-100 flex justify-between items-center">
+        <div>
+          <span class="text-[10px] text-gray-400 block font-bold uppercase">Status Shift Kasir</span>
+          <span id="shiftStatusText" class="text-xs font-bold text-red-500">Belum Buka Shift</span>
+        </div>
+        <button id="btnToggleShift" onclick="handleShiftAction()" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl">
+          Buka Shift
+        </button>
+      </div>
+
+      <!-- Search Produk -->
+      <div class="relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-xs"></i>
+        <input type="text" id="searchProductInput" oninput="filterProducts()" placeholder="Cari menu produk..." class="w-full bg-white border border-gray-200 rounded-2xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-purple-600">
+      </div>
+
+      <!-- Grid Produk -->
+      <div id="productGrid" class="grid grid-cols-2 gap-3"></div>
+    </section>
+
+    <!-- ==================== TAB 3: LAPORAN & EXPENSE ==================== -->
+    <section id="tabLaporan" class="tab-content hidden space-y-4">
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+        <h3 class="font-bold text-xs uppercase text-gray-500 tracking-wider">Ringkasan Shift & Kas</h3>
+        <div class="grid grid-cols-2 gap-2 text-center">
+          <div class="bg-purple-50 p-3 rounded-xl">
+            <p class="text-[10px] text-gray-500">Penjualan Shift</p>
+            <p id="shiftSalesText" class="font-black text-purple-700 text-sm">Rp 0</p>
+          </div>
+          <div class="bg-red-50 p-3 rounded-xl">
+            <p class="text-[10px] text-gray-500">Pengeluaran Shift</p>
+            <p id="shiftExpenseText" class="font-black text-red-600 text-sm">Rp 0</p>
+          </div>
         </div>
       </div>
 
-      <!-- 2. IDENTITAS TOKO & INTEGRASI PAKASIR -->
+      <!-- Form Pengeluaran -->
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+        <div class="flex justify-between items-center">
+          <h3 class="font-bold text-xs text-gray-800 flex items-center gap-2">
+            <i class="fa-solid fa-receipt text-red-500"></i> Catat Pengeluaran
+          </h3>
+          <button id="btnManageCategories" onclick="openCategoryModal()" class="text-[10px] text-purple-600 font-bold underline hidden">
+            + Kelola Kategori
+          </button>
+        </div>
+        <select id="expenseCategorySelect" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none">
+          <option value="">Pilih Kategori...</option>
+        </select>
+        <input type="number" id="expenseAmountInput" placeholder="Jumlah (Rp)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
+        <input type="text" id="expenseNoteInput" placeholder="Keterangan pengeluaran" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
+        <button onclick="submitExpense()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-xl text-xs">Simpan Pengeluaran</button>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: PENGATURAN (ADMIN ONLY) ==================== -->
+    <section id="tabPengaturan" class="tab-content hidden space-y-4">
+      
+      <!-- INTEGRASI PAKASIR DYNAMIC QRIS (TERSIMPAM DI SUPABASE) -->
+      <div id="sectionPakasirMgmt" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3 hidden">
         <h3 class="font-bold text-xs text-gray-800 uppercase flex items-center gap-2 border-b pb-2">
-          <i class="fa-solid fa-store text-purple-600"></i> Identitas Toko & API
+          <i class="fa-solid fa-qrcode text-purple-600"></i> Integrasi Pakasir QRIS (Supabase)
         </h3>
         <div>
-          <label class="text-[11px] font-bold text-gray-500">Nama Toko</label>
-          <input type="text" id="storeNameInput" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
+          <label class="text-[11px] font-bold text-gray-500">Nama Toko / Resto</label>
+          <input type="text" id="storeNameInput" placeholder="TEMAN COFFEE KUPANG" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
         </div>
         <div>
-          <label class="text-[11px] font-bold text-gray-500">Alamat Toko</label>
-          <textarea id="storeAddressInput" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs" rows="2"></textarea>
+          <label class="text-[11px] font-bold text-gray-500">Pakasir Slug / Project ID</label>
+          <input type="text" id="pakasirSlugInput" placeholder="Contoh: temancoffee" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
         </div>
         <div>
-          <label class="text-[11px] font-bold text-gray-500">Pakasir API Key (QRIS Dynamic)</label>
-          <input type="text" id="pakasirApiKeyInput" placeholder="Masukkan API Key Pakasir" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
+          <label class="text-[11px] font-bold text-gray-500">Pakasir API Key</label>
+          <input type="text" id="pakasirApiKeyInput" placeholder="Masukkan API Key Pakasir Anda" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
         </div>
-        <button onclick="saveStoreSettings()" class="w-full bg-purple-600 text-white font-bold py-2 rounded-xl text-xs shadow">
-          Simpan Pengaturan
+        <button onclick="savePakasirSettingsToSupabase()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-md">
+          Simpan Pengaturan Pakasir ke Database
         </button>
+      </div>
+
+      <!-- KELOLA PRODUK (ADMIN ONLY) -->
+      <div id="sectionProductMgmt" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3 hidden">
+        <div class="flex justify-between items-center border-b pb-2">
+          <h3 class="font-bold text-xs text-gray-800 uppercase flex items-center gap-2">
+            <i class="fa-solid fa-box text-purple-600"></i> Kelola Produk & Stok
+          </h3>
+          <button onclick="openAddProductModal()" class="bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-1 rounded-xl text-xs font-bold">+ Tambah Produk</button>
+        </div>
+        <div id="adminProductListContainer" class="space-y-2"></div>
+      </div>
+
+      <!-- MANAJEMEN KARYAWAN (ADMIN ONLY) -->
+      <div id="sectionEmployeeMgmt" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3 hidden">
+        <div class="flex justify-between items-center border-b pb-2">
+          <h3 class="font-bold text-xs text-gray-800 uppercase flex items-center gap-2">
+            <i class="fa-solid fa-users text-purple-600"></i> Manajemen Karyawan
+          </h3>
+          <button onclick="openAddEmployeeModal()" class="bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-1 rounded-xl text-xs font-bold">+ Akun Karyawan</button>
+        </div>
+        <div id="employeeListContainer" class="space-y-2"></div>
       </div>
 
     </section>
   </main>
 
-  <!-- BOTTOM NAVIGATION BAR -->
-  <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 py-2 px-6 flex justify-between items-center z-50 max-w-md mx-auto">
-    <button onclick="switchTab('Kasir')" id="navKasir" class="nav-item text-purple-600 flex flex-col items-center gap-1">
-      <i class="fa-solid fa-cash-register text-lg"></i>
+  <!-- NAVIGATION BAR BAWAH -->
+  <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 py-2 px-4 flex justify-between items-center z-50 max-w-md mx-auto">
+    <button onclick="switchTab('Dashboard')" id="navDashboard" class="nav-item text-purple-600 flex flex-col items-center gap-1">
+      <i class="fa-solid fa-house text-base"></i>
+      <span class="text-[10px] font-bold">Beranda</span>
+    </button>
+    <button onclick="switchTab('Kasir')" id="navKasir" class="nav-item text-gray-400 flex flex-col items-center gap-1">
+      <i class="fa-solid fa-cash-register text-base"></i>
       <span class="text-[10px] font-bold">Kasir</span>
     </button>
     <button onclick="openPaymentModal()" class="relative bg-purple-600 text-white p-3 rounded-full shadow-lg hover:bg-purple-700 transition -mt-5 border-4 border-gray-100">
@@ -149,109 +213,109 @@
       <span id="cartCountBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
     </button>
     <button onclick="switchTab('Laporan')" id="navLaporan" class="nav-item text-gray-400 flex flex-col items-center gap-1">
-      <i class="fa-solid fa-chart-line text-lg"></i>
+      <i class="fa-solid fa-chart-line text-base"></i>
       <span class="text-[10px] font-bold">Laporan</span>
     </button>
     <button onclick="switchTab('Pengaturan')" id="navPengaturan" class="nav-item text-gray-400 flex flex-col items-center gap-1">
-      <i class="fa-solid fa-gear text-lg"></i>
+      <i class="fa-solid fa-gear text-base"></i>
       <span class="text-[10px] font-bold">Pengaturan</span>
     </button>
   </nav>
 
-  <!-- MODAL PEMBAYARAN KASIR -->
+  <!-- MODAL PEMBAYARAN & PAKASIR INTEGRATED QRIS -->
   <div id="paymentModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl overflow-y-auto max-h-[90vh]">
-      <!-- Header -->
       <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-gray-800 text-sm">Pembayaran</h3>
+        <h3 class="font-bold text-gray-800 text-sm">Pembayaran Transaksi</h3>
         <button onclick="closePaymentModal()" class="text-gray-400 text-xl font-bold">&times;</button>
       </div>
 
-      <!-- Total Bayar -->
+      <!-- Ringkasan Keranjang Belanja -->
+      <div id="cartSummaryList" class="space-y-1 max-h-28 overflow-y-auto border-b pb-2 text-xs"></div>
+
       <div class="bg-purple-50 p-4 rounded-2xl text-center space-y-1">
-        <p class="text-[11px] text-gray-500 font-medium">Total Bayar</p>
-        <p id="payModalTotalText" class="text-2xl font-black text-purple-600">Rp 0</p>
+        <p class="text-[11px] text-gray-500 font-medium">Total Pembayaran</p>
+        <p id="payModalTotalText" class="text-2xl font-black text-purple-700">Rp 0</p>
       </div>
 
-      <!-- Pilihan Metode Pembayaran Dinamis -->
-      <div class="space-y-1.5">
-        <label class="text-[11px] font-bold text-gray-500">Metode Pembayaran</label>
-        <div id="paymentMethodButtons" class="grid grid-cols-2 gap-2">
-          <!-- Render Tombol Pembayaran yang Aktif dari Database/Settings -->
-        </div>
+      <!-- Pilihan Metode Pembayaran -->
+      <div class="grid grid-cols-2 gap-2">
+        <button id="btnPayCash" onclick="selectPaymentMethod('CASH')" class="p-3 border-2 border-purple-600 rounded-2xl bg-purple-50 text-purple-700 font-bold text-xs flex flex-col items-center gap-1">
+          <i class="fa-solid fa-money-bill-wave text-lg"></i> Tunai (Cash)
+        </button>
+        <button id="btnPayQris" onclick="selectPaymentMethod('PAKASIR_QRIS')" class="p-3 border-2 border-gray-200 rounded-2xl bg-gray-50 text-gray-600 font-bold text-xs flex flex-col items-center gap-1">
+          <i class="fa-solid fa-qrcode text-lg"></i> PAKASIR QRIS
+        </button>
       </div>
 
-      <!-- Form Pembayaran Tunai -->
-      <div id="cashPaymentSection" class="space-y-3">
-        <div>
-          <label class="text-[11px] font-bold text-gray-500">Jumlah Bayar</label>
-          <input type="number" id="payInputAmount" oninput="calculateChange()" placeholder="0" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-center text-lg font-black text-gray-800 focus:outline-none focus:border-purple-500">
+      <!-- Tampilan Gambar QRIS Pakasir Terintegrasi -->
+      <div id="qrisDisplayArea" class="hidden text-center p-3 bg-gray-50 rounded-2xl border border-purple-200 space-y-2">
+        <p class="text-[11px] font-bold text-purple-700">Scan QRIS PAKASIR di bawah ini:</p>
+        <div class="bg-white p-2 rounded-xl inline-block shadow-sm">
+          <img id="qrisImage" src="" alt="Pakasir QRIS Dynamic" class="w-48 h-48 mx-auto object-contain">
         </div>
-
-        <!-- Quick Nominal Buttons (1K - 100K & Uang Pas) -->
-        <div class="grid grid-cols-4 gap-1.5 text-center text-xs font-bold">
-          <button onclick="setQuickAmount(1000)" class="bg-gray-100 hover:bg-gray-200 py-2 rounded-xl text-gray-700">1K</button>
-          <button onclick="setQuickAmount(2000)" class="bg-gray-100 hover:bg-gray-200 py-2 rounded-xl text-gray-700">2K</button>
-          <button onclick="setQuickAmount(5000)" class="bg-gray-100 hover:bg-gray-200 py-2 rounded-xl text-gray-700">5K</button>
-          <button onclick="setQuickAmount(10000)" class="bg-gray-100 hover:bg-gray-200 py-2 rounded-xl text-gray-700">10K</button>
-          <button onclick="setQuickAmount(20000)" class="bg-gray-100 hover:bg-gray-200 py-2 rounded-xl text-gray-700">20K</button>
-          <button onclick="setQuickAmount(50000)" class="bg-gray-100 hover:bg-gray-200 py-2 rounded-xl text-gray-700">50K</button>
-          <button onclick="setQuickAmount(100000)" class="bg-gray-100 hover:bg-gray-200 py-2 rounded-xl text-gray-700">100K</button>
-          <button onclick="setExactAmount()" class="bg-purple-100 text-purple-700 hover:bg-purple-200 py-2 rounded-xl font-bold">Uang Pas</button>
-        </div>
-
-        <div class="text-right">
-          <button onclick="resetPayAmount()" class="text-[11px] font-bold text-gray-400 hover:text-gray-600">Reset</button>
-        </div>
+        <p class="text-[10px] text-gray-400">QRIS dibuat otomatis oleh Pakasir via Supabase</p>
       </div>
 
-      <!-- Informasi Tambahan Pelanggan & Meja -->
-      <div class="space-y-2 pt-1 border-t">
-        <div class="grid grid-cols-2 gap-2">
-          <div class="relative">
-            <i class="fa-regular fa-user absolute left-3 top-2.5 text-xs text-gray-400"></i>
-            <input type="text" id="payCustomerName" placeholder="Nama pelanggan" class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-8 pr-2 py-2 text-xs focus:outline-none focus:border-purple-500">
-          </div>
-          <div class="relative">
-            <span class="absolute left-3 top-2 text-xs font-bold text-gray-400">#</span>
-            <input type="text" id="payTableNumber" placeholder="Meja" class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-7 pr-2 py-2 text-xs focus:outline-none focus:border-purple-500">
-          </div>
-        </div>
-        <input type="text" id="payNotes" placeholder="Catatan tambahan (opsional)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-purple-500">
-      </div>
-
-      <!-- Display Kembalian -->
-      <div class="bg-emerald-50 p-3 rounded-2xl flex justify-between items-center text-xs">
-        <span class="font-bold text-gray-700">Kembalian</span>
-        <span id="payChangeText" class="font-black text-emerald-600 text-sm">Rp 0</span>
-      </div>
-
-      <!-- Tombol Eksekusi Transaksi -->
-      <button onclick="confirmTransaction()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-2xl text-xs shadow-lg transition active:scale-95 flex items-center justify-center gap-2">
-        <i class="fa-solid fa-check"></i> Konfirmasi Transaksi
+      <button onclick="confirmTransaction()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-2xl text-xs shadow-lg transition flex items-center justify-center gap-2">
+        <i class="fa-solid fa-check-circle"></i> Selesaikan Transaksi
       </button>
     </div>
   </div>
 
-  <!-- MODAL ABSENSI FOTO KAMERA -->
+  <!-- MODAL ABSENSI KAMERA -->
   <div id="attendanceModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-3 text-center">
-      <h3 class="font-bold text-gray-800 text-sm">Absensi Foto Kamera</h3>
-      <p class="text-[11px] text-gray-400">Ambil foto selfie langsung untuk masuk/buka shift</p>
-      
+      <h3 class="font-bold text-gray-800 text-sm">Absensi Karyawan</h3>
       <div class="relative bg-black rounded-2xl overflow-hidden h-48 flex items-center justify-center">
         <video id="cameraVideo" autoplay playsinline class="w-full h-full object-cover"></video>
         <canvas id="cameraCanvas" class="hidden"></canvas>
       </div>
-
-      <button onclick="takeAttendancePhoto()" class="w-full bg-purple-600 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2">
-        <i class="fa-solid fa-camera"></i> Ambil Foto & Absen
-      </button>
+      <button onclick="takeAttendancePhoto()" class="w-full bg-purple-600 text-white font-bold py-2.5 rounded-xl text-xs">Ambil Foto & Absen</button>
       <button onclick="closeAttendanceModal()" class="w-full bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-xs">Batal</button>
     </div>
   </div>
 
-  <!-- PENGHUBUNG LOGIKA JAVASCRIPT -->
+  <!-- MODAL TAMBAH PRODUK + AI GENERATED IMAGE -->
+  <div id="productModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-3 shadow-2xl">
+      <h3 class="font-bold text-gray-800 text-sm">Tambah / Edit Produk</h3>
+      <input type="text" id="prodNameInput" placeholder="Nama Produk" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
+      <input type="number" id="prodPriceInput" placeholder="Harga (Rp)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
+      <input type="number" id="prodStockInput" placeholder="Jumlah Stok" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
+      
+      <!-- Photo Option dengan AI Generator -->
+      <div class="space-y-1">
+        <label class="text-[10px] font-bold text-gray-500">URL Gambar / AI Image Generator</label>
+        <div class="flex gap-2">
+          <input type="text" id="prodImageInput" placeholder="https://..." class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
+          <button onclick="generateAIProductImage()" class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-[10px] font-bold px-2 py-2 rounded-xl flex items-center gap-1 shadow-sm">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> AI Image
+          </button>
+        </div>
+      </div>
+
+      <button onclick="saveProductData()" class="w-full bg-purple-600 text-white font-bold py-2.5 rounded-xl text-xs">Simpan Produk</button>
+      <button onclick="closeProductModal()" class="w-full bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-xs">Batal</button>
+    </div>
+  </div>
+
+  <!-- MODAL BUAT AKUN KARYAWAN -->
+  <div id="employeeModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-3">
+      <h3 class="font-bold text-gray-800 text-sm">Buat Akun Karyawan Baru</h3>
+      <input type="email" id="empEmailInput" placeholder="Email Karyawan" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
+      <input type="password" id="empPasswordInput" placeholder="Password Min 6 Karakter" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
+      <input type="text" id="empNameInput" placeholder="Nama Lengkap Karyawan" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
+      <select id="empRoleSelect" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
+        <option value="kasir">Kasir</option>
+        <option value="manager">Manajer</option>
+      </select>
+      <button onclick="saveEmployeeData()" class="w-full bg-purple-600 text-white font-bold py-2.5 rounded-xl text-xs">Buat Akun Karyawan</button>
+      <button onclick="closeEmployeeModal()" class="w-full bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-xs">Batal</button>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
