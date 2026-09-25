@@ -1,8 +1,8 @@
 // ==========================================
 // 1. SUPABASE CLIENT & GLOBAL STATE
 // ==========================================
-const SUPABASE_URL = "URL_SUPABASE_ANDA";
-const SUPABASE_ANON_KEY = "ANON_KEY_SUPABASE_ANDA";
+const SUPABASE_URL = "https://ankprmkhsqkgugzndlcx.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFua3BybWtoc3FrZ3Vnem5kbGN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNzI2NzgsImV4cCI6MjEwNTg0ODY3OH0.D48Jxrv2f51Ggl9yT5Tayme5eDAC_Eo1jpM_pmGfp-E";
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
