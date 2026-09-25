@@ -36,12 +36,29 @@ async function checkUserSession() {
 
   if (session && session.user) {
     currentUser = session.user;
-    document.getElementById('userStatusHeader').innerText = `Kasir: ${currentUser.email}`;
+    
+    // Ambil data detail dari tabel profiles
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('*')
+      .eq('id', currentUser.id)
+      .single();
+
+    const roleText = profile && profile.role === 'admin' ? 'Admin' : 'Kasir';
+    const nameText = profile && profile.full_name ? profile.full_name : currentUser.email;
+
+    // Tampilkan role dan nama/email secara dinamis
+    document.getElementById('userStatusHeader').innerText = `${roleText}: ${nameText}`;
+    
+    // Jika Admin, tampilkan menu pengaturan khusus
+    if (profile && profile.role === 'admin') {
+      console.log("Login sebagai Admin");
+    }
   } else {
-    // Hanya jika benar-benar tidak ada sesi, arahkan ke halaman login
     console.log("Pengguna belum login.");
   }
 }
+
 
 // Fungsi Logout Eksplisit (Hanya keluar jika tombol diklik)
 async function handleUserLogout() {
