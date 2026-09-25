@@ -4,13 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TEMAN COFFEE POS</title>
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Toastify JS -->
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </head>
@@ -26,9 +22,6 @@
       </div>
     </div>
     <div class="flex items-center gap-2">
-      <button id="btnAbsenHeader" onclick="openAttendanceModal()" class="bg-purple-800 hover:bg-purple-900 text-white text-xs px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 hidden">
-        <i class="fa-solid fa-camera"></i> Absen
-      </button>
       <button onclick="handleUserLogout()" class="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5">
         <i class="fa-solid fa-right-from-bracket"></i> Keluar
       </button>
@@ -38,7 +31,7 @@
   <!-- KONTEN UTAMA -->
   <main class="max-w-md mx-auto p-4 space-y-4">
 
-    <!-- TAB 1: BERANDA / DASHBOARD -->
+    <!-- TAB 1: DASHBOARD -->
     <section id="tabDashboard" class="tab-content space-y-4">
       <div class="grid grid-cols-2 gap-3">
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-1">
@@ -50,77 +43,22 @@
           <p id="dashTotalSalesText" class="text-xl font-black text-emerald-600">Rp 0</p>
         </div>
       </div>
-
-      <!-- Quick Nav -->
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
-        <h3 class="font-bold text-xs text-gray-800 uppercase flex items-center gap-1.5">
-          <i class="fa-solid fa-wand-magic-sparkles text-purple-600"></i> Menu Operasional
-        </h3>
-        <div class="grid grid-cols-4 gap-2 text-center">
-          <button onclick="switchTab('Kasir')" class="p-2 bg-purple-50 rounded-2xl flex flex-col items-center hover:bg-purple-100 transition">
-            <i class="fa-solid fa-cash-register text-purple-600 text-lg mb-1"></i>
-            <span class="text-[10px] font-bold text-gray-700">Kasir</span>
-          </button>
-          <button onclick="switchTab('Laporan')" class="p-2 bg-emerald-50 rounded-2xl flex flex-col items-center hover:bg-emerald-100 transition">
-            <i class="fa-solid fa-chart-line text-emerald-600 text-lg mb-1"></i>
-            <span class="text-[10px] font-bold text-gray-700">Laporan</span>
-          </button>
-          <button onclick="switchTab('Pengaturan')" class="p-2 bg-amber-50 rounded-2xl flex flex-col items-center hover:bg-amber-100 transition">
-            <i class="fa-solid fa-boxes-stacked text-amber-600 text-lg mb-1"></i>
-            <span class="text-[10px] font-bold text-gray-700">Produk</span>
-          </button>
-          <button onclick="switchTab('Pengaturan')" class="p-2 bg-pink-50 rounded-2xl flex flex-col items-center hover:bg-pink-100 transition">
-            <i class="fa-solid fa-users text-pink-600 text-lg mb-1"></i>
-            <span class="text-[10px] font-bold text-gray-700">Karyawan</span>
-          </button>
-        </div>
-      </div>
     </section>
 
     <!-- TAB 2: KASIR -->
     <section id="tabKasir" class="tab-content hidden space-y-4">
-      <div class="bg-white p-3 rounded-2xl shadow-sm border border-purple-100 flex justify-between items-center">
-        <div>
-          <span class="text-[10px] text-gray-400 block font-bold uppercase">Status Shift</span>
-          <span id="shiftStatusText" class="text-xs font-bold text-red-500">Belum Buka Shift</span>
-        </div>
-        <button id="btnToggleShift" onclick="handleShiftAction()" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl">
-          Buka Shift
-        </button>
-      </div>
-
       <div class="relative">
         <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-xs"></i>
-        <input type="text" id="searchProductInput" oninput="filterProducts()" placeholder="Cari menu produk..." class="w-full bg-white border border-gray-200 rounded-2xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-purple-600">
+        <input type="text" id="searchProductInput" placeholder="Cari menu produk..." class="w-full bg-white border border-gray-200 rounded-2xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-purple-600">
       </div>
-
       <div id="productGrid" class="grid grid-cols-2 gap-3"></div>
     </section>
 
-    <!-- TAB 3: LAPORAN -->
-    <section id="tabLaporan" class="tab-content hidden space-y-4">
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
-        <h3 class="font-bold text-xs uppercase text-gray-500 tracking-wider">Ringkasan Shift & Kas</h3>
-        <div class="grid grid-cols-2 gap-2 text-center">
-          <div class="bg-purple-50 p-3 rounded-xl">
-            <p class="text-[10px] text-gray-500">Penjualan Shift</p>
-            <p id="shiftSalesText" class="font-black text-purple-700 text-sm">Rp 0</p>
-          </div>
-          <div class="bg-red-50 p-3 rounded-xl">
-            <p class="text-[10px] text-gray-500">Pengeluaran Shift</p>
-            <p id="shiftExpenseText" class="font-black text-red-600 text-sm">Rp 0</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 4: PENGATURAN (ADMIN ONLY) -->
+    <!-- TAB 3: PENGATURAN TOKO (ADMIN ONLY) -->
     <section id="tabPengaturan" class="tab-content hidden space-y-4">
-      
-      <!-- PENGATURAN PROFIL TOKO & STRUK -->
       <div id="sectionStoreMgmt" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3 hidden">
         <h3 class="font-bold text-xs text-gray-800 uppercase flex items-center gap-2 border-b pb-2">
-          <i class="fa-solid fa-store text-purple-600"></i> Pengaturan Toko & Struk cetak
+          <i class="fa-solid fa-store text-purple-600"></i> Pengaturan Toko & Struk Cetak
         </h3>
         <div>
           <label class="text-[11px] font-bold text-gray-500">Nama Toko</label>
@@ -138,28 +76,14 @@
           <label class="text-[11px] font-bold text-gray-500">URL Logo Toko</label>
           <input type="text" id="storeLogoUrlInput" placeholder="https://..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
         </div>
-
-        <div class="pt-2 border-t space-y-2">
-          <h4 class="font-bold text-xs text-purple-700">Credentials Pakasir (Simpan Aman di Supabase)</h4>
-          <div>
-            <label class="text-[11px] font-bold text-gray-500">Pakasir Slug / Project ID</label>
-            <input type="text" id="pakasirSlugInput" placeholder="temancoffee" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
-          </div>
-          <div>
-            <label class="text-[11px] font-bold text-gray-500">Pakasir API Key / Secret Key</label>
-            <input type="password" id="pakasirApiKeyInput" placeholder="Masukkan API Key Pakasir" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
-          </div>
-        </div>
-
         <button onclick="saveStoreSettingsToSupabase()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-md">
-          Simpan Semua Pengaturan ke Supabase
+          Simpan Data Toko ke Supabase
         </button>
       </div>
-
     </section>
   </main>
 
-  <!-- BOTTOM NAVIGATION BAR -->
+  <!-- BOTTOM NAVIGATION -->
   <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 py-2 px-4 flex justify-between items-center z-50 max-w-md mx-auto">
     <button onclick="switchTab('Dashboard')" id="navDashboard" class="nav-item text-purple-600 flex flex-col items-center gap-1">
       <i class="fa-solid fa-house text-base"></i>
@@ -173,17 +97,13 @@
       <i class="fa-solid fa-cart-shopping text-lg"></i>
       <span id="cartCountBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
     </button>
-    <button onclick="switchTab('Laporan')" id="navLaporan" class="nav-item text-gray-400 flex flex-col items-center gap-1">
-      <i class="fa-solid fa-chart-line text-base"></i>
-      <span class="text-[10px] font-bold">Laporan</span>
-    </button>
     <button onclick="switchTab('Pengaturan')" id="navPengaturan" class="nav-item text-gray-400 flex flex-col items-center gap-1">
       <i class="fa-solid fa-gear text-base"></i>
       <span class="text-[10px] font-bold">Pengaturan</span>
     </button>
   </nav>
 
-  <!-- MODAL PEMBAYARAN & PAKASIR INTEGRATED QRIS -->
+  <!-- MODAL PEMBAYARAN -->
   <div id="paymentModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl overflow-y-auto max-h-[90vh]">
       <div class="flex justify-between items-center border-b pb-2">
@@ -205,21 +125,17 @@
         </button>
       </div>
 
-      <!-- Tampilan Gambar Dynamic QRIS Pakasir -->
+      <!-- AREA GAMBAR DYNAMIC QRIS PAKASIR -->
       <div id="qrisDisplayArea" class="hidden text-center p-3 bg-gray-50 rounded-2xl border border-purple-200 space-y-2">
         <p class="text-[11px] font-bold text-purple-700">Scan QRIS PAKASIR di bawah ini:</p>
         <div class="bg-white p-2 rounded-xl inline-block shadow-sm">
           <img id="qrisImage" src="" alt="Pakasir QRIS Dynamic" class="w-48 h-48 mx-auto object-contain">
         </div>
-        <p class="text-[10px] text-gray-400">QRIS dibuat otomatis oleh Pakasir via Supabase</p>
+        <p class="text-[10px] text-gray-400">QRIS dibuat otomatis oleh Supabase Server</p>
       </div>
-
-      <button onclick="confirmTransaction()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-2xl text-xs shadow-lg transition flex items-center justify-center gap-2">
-        <i class="fa-solid fa-check-circle"></i> Selesaikan Transaksi
-      </button>
     </div>
   </div>
 
   <script src="script.js"></script>
 </body>
-</html>
+  </html>
