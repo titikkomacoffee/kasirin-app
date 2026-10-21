@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "id.co_id.kasirkupang.twa",
+        "sha256_cert_fingerprints": ["42:8A:16:B8:18:89:55:27:2A:B8:DE:B6:F9:CE:C5:5A:CC:A1:98:BB:AA:21:B7:82:3C:9D:F4:4C:8D:D0:14:3B"]
+      }
+    }]
