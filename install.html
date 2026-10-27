@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Pasang KasirKu</title>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0d9488"><link rel="icon" href="icon-192.png">
+<style>
+:root{--p:#0d9488;--bg:#f3f5fa;--c:#fff;--t:#0f172a;--m:#64748b;--b:#e2e8f0}
+@media(prefers-color-scheme:dark){:root{--bg:#0b1220;--c:#151e30;--t:#e8edf7;--m:#94a3b8;--b:#25314a}}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--t);padding-bottom:40px}
+.hero{background:linear-gradient(135deg,var(--p),#0a5c56);color:#fff;text-align:center;padding:calc(34px + env(safe-area-inset-top)) 20px 70px;border-radius:0 0 32px 32px}
+.hero img{width:84px;height:84px;border-radius:22px;box-shadow:0 10px 30px #0006}.hero h1{margin:14px 0 4px;font-size:26px}.hero p{margin:0;opacity:.9}
+main{max-width:520px;margin:-44px auto 0;padding:0 16px}.card{background:var(--c);border:1px solid var(--b);border-radius:22px;padding:18px;margin-bottom:14px;box-shadow:0 8px 24px #0f172a14}
+h2{margin:0 0 10px;font-size:18px}.btn{display:block;width:100%;padding:14px 16px;margin:8px 0;border:0;border-radius:14px;background:var(--p);color:#fff;font:700 16px inherit;text-align:center;text-decoration:none;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--p);border:2px solid var(--p)}ol{margin:8px 0 0;padding-left:20px;line-height:1.7}li{margin-bottom:4px}small,.m{color:var(--m)}
+#qr{display:grid;place-items:center;padding:14px;background:#fff;border-radius:18px;width:fit-content;margin:10px auto}.tag{display:inline-block;padding:3px 10px;border-radius:99px;background:color-mix(in srgb,var(--p) 14%,transparent);color:var(--p);font-weight:700;font-size:12px}
+.hide{display:none}.btn.wa{background:#25d366}.ft{margin:0;padding-left:18px;line-height:1.65;font-size:14px}.ft li{margin-bottom:2px}h3{margin:14px 0 4px;font-size:15px;color:var(--p)}
+</style></head><body>
+<div class="hero"><img src="icon-512.png" alt="KasirKu"><h1>KasirKu</h1><p>Kasir, stok, laporan, absensi, dan gaji</p></div>
+<main>
+ <div class="card">
+  <h2>Pasang aplikasi</h2>
+  <button id="btnInstall" class="btn hide">Pasang sekarang</button>
+  <a id="btnApk" class="btn hide" href="kasirku.apk" download>Unduh APK Android</a>
+  <a class="btn ghost" href="./">Buka aplikasi di browser</a>
+  <small id="note">Pilih cara yang sesuai dengan perangkat Anda di bawah ini.</small>
+ </div>
+ <div class="card"><span class="tag">Android</span><h2 style="margin-top:8px">Android (Chrome)</h2>
+  <ol><li>Buka alamat aplikasi di <b>Chrome</b>.</li><li>Ketuk tombol <b>Pasang sekarang</b> di atas, atau menu <b>⋮</b> lalu <b>Pasang aplikasi</b>.</li><li>Ketuk <b>Pasang</b>. Ikon KasirKu muncul di layar utama.</li></ol></div>
+ <div class="card"><span class="tag">iPhone / iPad</span><h2 style="margin-top:8px">iPhone (Safari)</h2>
+  <ol><li>Buka alamat aplikasi di <b>Safari</b> (bukan Chrome).</li><li>Ketuk tombol <b>Bagikan</b> (kotak dengan panah ke atas).</li><li>Pilih <b>Tambah ke Layar Utama</b>, lalu <b>Tambah</b>.</li></ol></div>
+ <div class="card"><span class="tag">Laptop / PC</span><h2 style="margin-top:8px">Chrome atau Edge</h2>
+  <ol><li>Buka alamat aplikasi.</li><li>Klik ikon pasang di ujung kanan kolom alamat, lalu <b>Pasang</b>.</li></ol></div>
+ <div class="card"><h2>Fitur lengkap KasirKu</h2>
+  <h3>Kasir &amp; penjualan</h3><ul class="ft"><li>Transaksi cepat dengan foto produk, kategori, dan pencarian instan</li><li>Keranjang muncul otomatis, diskon, dan tahan pesanan</li><li>Bayar tunai (nominal cepat &amp; kembalian), QRIS, atau piutang</li><li>Struk digital, cetak ke printer thermal Bluetooth/USB, kirim lewat WhatsApp</li><li>Scan barcode dengan alat scanner atau kamera</li></ul>
+  <h3>Produk, bahan &amp; stok</h3><ul class="ft"><li>Katalog produk dengan foto, SKU/barcode, dan resep bahan per produk</li><li>Stok produk dan bahan berkurang otomatis saat terjual</li><li>Stok per cabang, Pusat sebagai gudang (tidak terbatas)</li><li>Kirim, terima, dan kembalikan barang antar outlet; catat barang terbuang</li><li>Peringatan stok cabang menipis atau habis untuk Admin dan Manajer</li></ul>
+  <h3>Laporan &amp; keuangan</h3><ul class="ft"><li>Dashboard harian dengan perbandingan dibanding kemarin</li><li>Laporan hari, minggu, bulan, atau rentang tanggal: cash, QRIS, piutang, diskon</li><li>Pengeluaran otomatis memotong laba, laba bersih, dan menu terjual</li><li>Bagikan atau unduh laporan sebagai gambar</li></ul>
+  <h3>Kas, shift &amp; piutang</h3><ul class="ft"><li>Buka dan tutup kasir dengan hitung kas, selisih, dan catatan alasan</li><li>Buku piutang dengan pembayaran cicilan tunai atau QRIS</li><li>Pesanan ditahan dan piutang diselesaikan dulu sebelum transaksi baru</li></ul>
+  <h3>Tim, absensi &amp; gaji</h3><ul class="ft"><li>Peran Admin, Manajer, dan Kasir dengan hak akses berbeda</li><li>Absensi foto langsung dengan jam, alamat, dan peta otomatis</li><li>Denda terlambat, tidak masuk, dan tidak absen pulang yang diatur Admin</li><li>Insentif per produk, kas bon, dan estimasi gaji otomatis</li></ul>
+  <h3>Multi-cabang &amp; multi-bisnis</h3><ul class="ft"><li>Banyak outlet dalam satu dashboard</li><li>Banyak bisnis dengan data terpisah, lengkap dengan kode bisnis untuk karyawan</li></ul>
+  <h3>Perangkat</h3><ul class="ft"><li>Dipasang seperti aplikasi di Android, iPhone, atau komputer (APK tersedia untuk Android)</li><li>Pilihan warna tema dan mode gelap</li></ul></div>
+ <div class="card"><h2>Hubungi developer</h2><small>Ada pertanyaan, kendala, atau permintaan fitur baru? Hubungi developer lewat WhatsApp.</small>
+  <a class="btn wa" href="https://wa.me/628811533903?text=Halo%20developer%20KasirKu%2C%20saya%20ingin%20bertanya%20tentang%20aplikasi." target="_blank" rel="noopener">Chat WhatsApp developer</a><small>+62 881-1533-903</small></div>
+ <div class="card"><h2>Bagikan ke karyawan</h2><small>Minta karyawan memindai kode ini dengan kamera HP untuk membuka halaman ini.</small><div id="qr"></div><small id="url" style="word-break:break-all"></small></div>
+ <p class="m" style="text-align:center;font-size:13px">Aplikasi membutuhkan internet untuk transaksi dan sinkronisasi data antar outlet.</p>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+let dip=null;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e;$('#btnInstall').classList.remove('hide')});
+addEventListener('appinstalled',()=>{$('#btnInstall').classList.add('hide');$('#note').textContent='Aplikasi terpasang. Buka dari layar utama.'});
+$('#btnInstall').onclick=async()=>{if(dip){dip.prompt();await dip.userChoice;dip=null}};
+if(matchMedia('(display-mode: standalone)').matches||navigator.standalone){$('#note').textContent='Aplikasi sudah terpasang di perangkat ini.'}
+// Tombol APK hanya muncul kalau file kasirku.apk sudah diunggah
+fetch('kasirku.apk',{method:'HEAD'}).then(r=>{if(r.ok)$('#btnApk').classList.remove('hide')}).catch(()=>{});
+// Kode QR menuju halaman utama aplikasi
+const home=new URL('./',location.href).href;$('#url').textContent=home;
+try{new QRCode($('#qr'),{text:home,width:200,height:200,correctLevel:QRCode.CorrectLevel.M})}catch(e){$('#qr').textContent='Kode QR tidak dapat dimuat'}
+</script></body></html>
