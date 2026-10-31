@@ -1,8 +1,8 @@
 // Service worker KasirKu: agar bisa dipasang & tetap terbuka saat server hosting bermasalah.
-// Data transaksi tetap butuh internet (Supabase).
+// Offline: aplikasi terbuka dari cache; penjualan disimpan di antrean perangkat dan dikirim saat online.
 // v2: halaman error server (5xx) TIDAK lagi disimpan/ditampilkan menggantikan aplikasi.
-const CACHE='kasirku-v2';
-const SHELL=['./','index.html','manifest.json','icon-192.png','icon-512.png'];
+const CACHE='kasirku-v4';
+const SHELL=['./','index.html','manifest.json','icon-192.png','icon-512.png','https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js'];
 const HOSTS=['cdn.jsdelivr.net','fonts.googleapis.com','fonts.gstatic.com'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>Promise.all(SHELL.map(u=>c.add(u).catch(()=>{})))).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
